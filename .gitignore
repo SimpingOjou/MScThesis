@@ -170,5 +170,5 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-*.csv
+Data_by_group/
 *.mp4
