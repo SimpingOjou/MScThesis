@@ -43,7 +43,7 @@ class MultiprocessCopy():
         ## Batch 
         if current_batch is None:
             print(f'Batch: {current_batch}')
-            return False
+            return False, file+ext
         
         if any(self.left_right_key[0] in element for element in element_list):
             output_batch = current_batch + '_left'
@@ -53,7 +53,7 @@ class MultiprocessCopy():
         ## Datast
         if current_dataset is None:
             print(f'Dataset: {current_dataset}')
-            return False
+            return False, file+ext
 
         if any(current_dataset in element for element in element_list):
             output_dataset = current_dataset
@@ -67,14 +67,14 @@ class MultiprocessCopy():
 
             if output_view is None:
                 print(f'View: {output_view}')
-                return False
+                return False, file+ext
         
         if ext == self.video_format: 
             output_view = self.output_video_folder
 
             if output_batch is None or output_dataset is None or output_view is None:
                 print(f'View: {output_view}')
-                return False
+                return False, file+ext
 
         output_folder = os.path.join(self.output_path, output_batch, output_dataset, output_view)
 
@@ -90,7 +90,7 @@ class MultiprocessCopy():
             print(f'Error: {e}')
             print(f'File: {file + ext} not copied!')
 
-        return True
+        return True, file+ext
 
 def main():
     input_folder = './Data/by_group'
@@ -163,11 +163,9 @@ def copy_files(file_list, output_path, input_path,
     m_copy = MultiprocessCopy(*function_input)
     p = Pool()
 
-    map = p.imap(m_copy.copy_data, iter(coupled_list))
-
-    for file_with_list in tqdm(coupled_list, desc='Copying files', unit='it', total=len(coupled_list)):
-        if not m_copy.copy_data(file_with_list):
-            print(f'File: {file_with_list} not copied!')
+    for no_error, filename in tqdm(p.imap(m_copy.copy_data, coupled_list), desc='Copying files', unit='it', total=len(coupled_list)):
+        if not no_error:
+            print('Error copying file: ', filename)
 
     p.close()
     p.join()

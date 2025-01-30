@@ -15,8 +15,6 @@ def main():
     data:dict[str, dict[str, dict[str, list[float]]]] = dm.get_data_dict()
 
     print(dm.get_feature_names_from_data())
-    
-    dm.plot_data()
 
 class DataManager:
     def __init__(self, data_folder:str, 
