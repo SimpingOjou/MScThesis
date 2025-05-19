@@ -136,7 +136,8 @@ def main():
     # data_file = 'AB_LR_combined.csv' # AB combined pre and post > too many clusters, can't see
     # data_file = 'AB_LR_combined_post.csv' # AB combined post > too many clusters, can't see
     # data_file = 'B_hindlimb.csv' # B pre vs post > small changes
-    data_file = 'CE_LR_post.csv'
+    # data_file = 'CE_LR_post.csv'
+    data_file = 'CE_L_prepost.csv'
 
     full_data = pd.read_csv(data_folder + data_file)
     print(full_data.head())
