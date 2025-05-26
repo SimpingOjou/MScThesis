@@ -7,9 +7,10 @@ import seaborn as sns
 from sklearn.preprocessing import RobustScaler, LabelEncoder
 from sklearn.decomposition import PCA
 from sklearn.linear_model import Lasso, LassoCV
+from xgboost import XGBRegressor
+import shap
 import umap
 from scipy.stats import pearsonr
-import plotly.express as px
 
 FIGURES_DIR = './figures/'
 
@@ -121,7 +122,7 @@ def plot_lasso_feature_importance(coef_series: pd.Series, top_k: int = 10):
 
     datetime = time.strftime("%Y-%m-%d_%H-%M-%S")
     filename = os.path.join(FIGURES_DIR, f"lasso_feature_importance_{datetime}.png")
-    plt.savefig(filename)
+    # plt.savefig(filename)
 
     plt.show()
 
@@ -207,7 +208,7 @@ def perform_dimensionality_reduction(
     datetime = time.strftime("%Y-%m-%d_%H-%M-%S")
     filename = os.path.join(FIGURES_DIR, f"{method.lower()}_projection_{datetime}.png")
     os.makedirs(FIGURES_DIR, exist_ok=True)
-    plt.savefig(filename, bbox_inches='tight')
+    # plt.savefig(filename, bbox_inches='tight')
     plt.show()
 
     if method == "PCA":
@@ -232,6 +233,52 @@ def print_top_pca_loadings(pca_model: PCA, feature_names: list, n_components: in
         print(f"Top features for {pc} (Explained Variance: {explained_var:.2f}%):")
         print("  •", ", ".join(top_feats))
     print("-" * 50)
+
+def plot_umap_feature_importance_with_xgboost(X: pd.DataFrame, umap_embedding: np.ndarray, top_k: int = 10):
+    """
+    Trains an XGBoost regressor to predict each UMAP component from features,
+    and plots the top-k most important features for each component.
+
+    Parameters:
+        X (pd.DataFrame): Input features used in UMAP.
+        umap_embedding (np.ndarray): UMAP-reduced coordinates (n_samples, 3).
+        top_k (int): Number of top features to show per component.
+    """
+    component_names = ["UMAP1", "UMAP2", "UMAP3"]
+
+    for i in range(3):
+        model = XGBRegressor(n_estimators=100, random_state=42)
+        model.fit(X, umap_embedding[:, i])
+
+        importances = model.feature_importances_
+        sorted_idx = np.argsort(importances)[::-1][:top_k]
+        top_features = X.columns[sorted_idx]
+        top_importances = importances[sorted_idx]
+
+        plt.figure(figsize=(15, 10))
+        plt.barh(top_features[::-1], top_importances[::-1], color="skyblue")
+        plt.title(f"Top {top_k} Features for {component_names[i]}", fontsize=16)
+        plt.xlabel("XGBoost Importance", fontsize=14)
+        plt.ylabel("Feature", fontsize=14)
+        plt.yticks(fontsize=12)
+        plt.grid(True, axis='x')
+        plt.tight_layout()
+
+        datetime = time.strftime("%Y-%m-%d_%H-%M-%S")
+        filename = os.path.join(FIGURES_DIR, f"xgboost_umap_feature_importance_{component_names[i].lower()}_{datetime}.png")
+        # plt.savefig(filename)
+
+        # SHAP summary
+        explainer = shap.Explainer(model, X)
+        shap_values = explainer(X)
+
+        shap.summary_plot(shap_values, X, max_display=top_k,
+                          plot_size=(12, 8),
+                          show=False)  # Delay display until saved
+
+        shap_fig_name = f"shap_summary_{component_names[i].lower()}_{datetime}.png"
+        plt.savefig(os.path.join(FIGURES_DIR, shap_fig_name), bbox_inches='tight')
+        plt.show()
 
 if __name__ == '__main__':
     ## Load the data
@@ -274,7 +321,7 @@ if __name__ == '__main__':
     #                                 method="PCA", n_components=3)
     
     # # UMAP
-    # perform_dimensionality_reduction(
+    # reducer, umap_plot_df = perform_dimensionality_reduction(
     #     X_agg, y_mouse, y_dataset,
     #     dataset_label_map, mouse_label_map,
     #     method="UMAP", n_components=3,
@@ -285,15 +332,15 @@ if __name__ == '__main__':
     # )
 
     # LASSO -> UMAP
-    # perform_dimensionality_reduction(
-    #     X_agg_lasso, y_mouse, y_dataset,
-    #     dataset_label_map, mouse_label_map,
-    #     method="UMAP", n_components=3,
-    #     target_metric='categorical',
-    #     target_weight=0.5,
-    #     n_neighbors=15,
-    #     min_dist=0.05
-    # )
+    reducer, umap_plot_df = perform_dimensionality_reduction(
+        X_agg_lasso, y_mouse, y_dataset,
+        dataset_label_map, mouse_label_map,
+        method="UMAP", n_components=3,
+        target_metric='categorical',
+        target_weight=0.5,
+        n_neighbors=15,
+        min_dist=0.05
+    )
 
     # ## LASSO -> PCA
     # perform_dimensionality_reduction(
@@ -301,4 +348,8 @@ if __name__ == '__main__':
     #     dataset_label_map, mouse_label_map,
     #     method="PCA", n_components=3
     # )
+
+    # UMAP -> XGBoost feature importance
+    umap_embedding = umap_plot_df[["UMAP1", "UMAP2", "UMAP3"]].values
+    plot_umap_feature_importance_with_xgboost(X_agg, umap_embedding, top_k=30)
 
