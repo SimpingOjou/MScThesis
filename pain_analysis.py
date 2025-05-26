@@ -1,16 +1,19 @@
 import os
 import time
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+
 from sklearn.preprocessing import RobustScaler, LabelEncoder
 from sklearn.decomposition import PCA
 from sklearn.linear_model import Lasso, LassoCV
+from sklearn.metrics import pairwise_distances
+from skbio.stats.distance import permanova, DistanceMatrix
 from xgboost import XGBRegressor
 import shap
 import umap
-from scipy.stats import pearsonr
 
 FIGURES_DIR = './figures/'
 
@@ -87,8 +90,7 @@ def select_features_with_lasso(X, y, feature_names=None, alpha=0.01, top_k=None,
     else:
         top_features = nonzero.index.tolist()
 
-    print(f"[LASSO] Selected {len(top_features)} features out of {len(feature_names)}")
-    print(f"[LASSO] Top features: {', '.join(top_features[:min(10, len(top_features))])}")
+    print(f"[DEBUG] Selected {len(top_features)} features out of {len(feature_names)}")
 
     X_selected = X[top_features]
 
@@ -134,6 +136,7 @@ def perform_dimensionality_reduction(
         mouse_label_map,
         method: str = "PCA",
         n_components: int = 3,
+        plot: bool = True,
         **kwargs
     ):
     """
@@ -170,6 +173,9 @@ def perform_dimensionality_reduction(
     df_processed = plot_df.copy()
     embedding = X_reduced
     datasets = np.unique(y_dataset)
+
+    if not plot:
+        return reducer, plot_df
 
     # Plot
     fig, axes = plt.subplots(1, 3, figsize=(18, 6), constrained_layout=True)
@@ -280,6 +286,31 @@ def plot_umap_feature_importance_with_xgboost(X: pd.DataFrame, umap_embedding: n
         plt.savefig(os.path.join(FIGURES_DIR, shap_fig_name), bbox_inches='tight')
         plt.show()
 
+def run_permanova_on_umap(umap_coords: np.ndarray, group_labels: list, sample_ids: list = None, n_permutations: int = 999):
+    """
+    Run PERMANOVA on UMAP embedding with group labels. PERMANOVA (Permutational Multivariate Analysis of Variance) is a non-parametric statistical test used to compare groups of multivariate samples (e.g., UMAP embeddings) based on distances between them. Are the centroids (means) of different groups in the multivariate space more different than you'd expect by chance?
+
+    Parameters:
+        umap_coords (np.ndarray): shape (n_samples, n_components)
+        group_labels (list or array): group assignment for each sample (e.g., 'pre', 'post')
+        sample_ids (list): optional list of unique IDs for each sample
+        n_permutations (int): number of permutations for PERMANOVA test
+
+    Returns:
+        result (DataFrame): PERMANOVA summary
+    """
+    if sample_ids is None:
+        sample_ids = [f"sample_{i}" for i in range(len(group_labels))]
+
+    # Compute pairwise Euclidean distance matrix
+    dist_matrix = pairwise_distances(umap_coords, metric='euclidean')
+    dm = DistanceMatrix(dist_matrix, ids=sample_ids)
+
+    # Run PERMANOVA
+    result = permanova(dm, grouping=group_labels, permutations=n_permutations)
+    print(result)
+    return result
+
 if __name__ == '__main__':
     ## Load the data
     data_folder = './csv/'
@@ -320,9 +351,21 @@ if __name__ == '__main__':
     #                                 dataset_label_map, mouse_label_map,
     #                                 method="PCA", n_components=3)
     
-    # # UMAP
+    # UMAP
+    reducer, umap_plot_df = perform_dimensionality_reduction(
+        X_agg, y_mouse, y_dataset,
+        dataset_label_map, mouse_label_map,
+        method="UMAP", n_components=3,
+        target_metric='categorical',
+        target_weight=0.5,
+        n_neighbors=15,
+        min_dist=0.05,
+        plot=False
+    )
+
+    # # LASSO -> UMAP
     # reducer, umap_plot_df = perform_dimensionality_reduction(
-    #     X_agg, y_mouse, y_dataset,
+    #     X_agg_lasso, y_mouse, y_dataset,
     #     dataset_label_map, mouse_label_map,
     #     method="UMAP", n_components=3,
     #     target_metric='categorical',
@@ -331,17 +374,6 @@ if __name__ == '__main__':
     #     min_dist=0.05
     # )
 
-    # LASSO -> UMAP
-    reducer, umap_plot_df = perform_dimensionality_reduction(
-        X_agg_lasso, y_mouse, y_dataset,
-        dataset_label_map, mouse_label_map,
-        method="UMAP", n_components=3,
-        target_metric='categorical',
-        target_weight=0.5,
-        n_neighbors=15,
-        min_dist=0.05
-    )
-
     # ## LASSO -> PCA
     # perform_dimensionality_reduction(
     #     X_agg_lasso, y_mouse, y_dataset,
@@ -349,7 +381,37 @@ if __name__ == '__main__':
     #     method="PCA", n_components=3
     # )
 
-    # UMAP -> XGBoost feature importance
-    umap_embedding = umap_plot_df[["UMAP1", "UMAP2", "UMAP3"]].values
-    plot_umap_feature_importance_with_xgboost(X_agg, umap_embedding, top_k=30)
+    # # UMAP -> XGBoost feature importance
+    # umap_embedding = umap_plot_df[["UMAP1", "UMAP2", "UMAP3"]].values
+    # plot_umap_feature_importance_with_xgboost(X_agg, umap_embedding, top_k=30)
 
+    ### Run PERMANOVA on UMAP coordinates
+    
+    ## Filter for specific datasets
+    umap_plot_df["Dataset_label"] = umap_plot_df["Dataset"].map(dataset_label_map)
+    # Only pre_left datasets
+    umap_plot_df = umap_plot_df[umap_plot_df["Dataset_label"].str.contains("pre_left")]
+    # # Only pre_right datasets
+    # umap_plot_df = umap_plot_df[umap_plot_df["Dataset_label"].str.contains("pre_right")]
+
+    # Plot UMAP projection
+    plt.figure(figsize=(10, 8))
+    sns.set(style="whitegrid")
+    sns.set_palette("husl")  # Use a color palette suitable for categorical data
+    sns.scatterplot(data=umap_plot_df, x="UMAP1", y="UMAP2", hue="Dataset_label")
+    plt.title("UMAP Projection of Pre-Right Datasets")
+    plt.xlabel("UMAP1")
+    plt.ylabel("UMAP2")
+    plt.legend(title="Dataset", bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+    plt.show()
+
+    ## Apply PERMANOVA
+    group_labels = umap_plot_df["Dataset_label"].values
+    umap_coords = umap_plot_df[["UMAP1", "UMAP2", "UMAP3"]].values
+    permanova_result = run_permanova_on_umap(
+        umap_coords,
+        group_labels,
+        sample_ids=umap_plot_df.index.tolist(),
+        n_permutations=999
+    )
