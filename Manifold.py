@@ -1,14 +1,12 @@
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from scipy.spatial.distance import squareform
-from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
-from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 import umap
-from scipy.stats import pearsonr, ttest_ind
+from scipy.stats import pearsonr
 
 def get_preprocessed_data(full_data):
     # Drop columns that are not needed
@@ -137,9 +135,10 @@ def main():
     # data_file = 'AB_LR_combined_post.csv' # AB combined post > too many clusters, can't see
     # data_file = 'B_hindlimb.csv' # B pre vs post > small changes
     # data_file = 'CE_LR_post.csv'
-    data_file = 'CE_L_prepost.csv'
+    # data_file = 'CE_L_prepost.csv'
+    data_file = 'Pain_hindlimb_mouse_features_2025-05-23_15-06-55.csv'
 
-    full_data = pd.read_csv(data_folder + data_file)
+    full_data = pd.read_csv(os.path.join(data_folder, data_file))
     print(full_data.head())
 
     # Preprocess data
@@ -167,24 +166,12 @@ def main():
 
     correlation_matrix = correlation_matrix.astype(float)
 
-    # # Plot heatmap
-    # plt.figure(figsize=(8, 6))
-    # sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", center=0, fmt=".2f")
-    # plt.title("Correlation Between UMAP Dimensions and PCA Components")
-    # plt.xlabel("UMAP Dimensions")
-    # plt.ylabel("PCA Components")
-    # plt.show()
-
-    # Visualize UMAP with feature overlays (top features from PCA)
-    top_features_pc1, top_features_pc2, top_features_pc3 = top_features
-
-    feature_to_plot = top_features_pc1[0]
+    # Plot heatmap
     plt.figure(figsize=(8, 6))
-    scatter = sns.scatterplot(x=umap_df["UMAP1"].values.flatten(), y=umap_df["UMAP2"].values.flatten(), hue=df[feature_to_plot], palette="viridis", alpha=0.8, legend=False)
-    plt.colorbar(scatter.collections[0], label=feature_to_plot)
-    plt.xlabel("UMAP1")
-    plt.ylabel("UMAP2")
-    plt.title(f"UMAP Projection Colored by {feature_to_plot}")
+    sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", center=0, fmt=".2f")
+    plt.title("Correlation Between UMAP Dimensions and PCA Components")
+    plt.xlabel("UMAP Dimensions")
+    plt.ylabel("PCA Components")
     plt.show()
 
 
