@@ -128,7 +128,8 @@ def get_UMAP(full_data, df, reduced_data,
 
 def main():
     ## Load data
-    data_folder = './csv/'
+    # data_folder = './csv/'
+    data_folder = './csv/Epilepsy/'
     # data_file = 'A_left_forelimb_mouse_features_2025-02-25_14-10-48.csv'
     # data_file = 'E_left_right_hindlimb_post.csv' # E L vs R vs post > spine 4 ang acceleration -> hip compensation going on healthy part
     # data_file = 'AB_LR_combined.csv' # AB combined pre and post > too many clusters, can't see
@@ -136,7 +137,8 @@ def main():
     # data_file = 'B_hindlimb.csv' # B pre vs post > small changes
     # data_file = 'CE_LR_post.csv'
     # data_file = 'CE_L_prepost.csv'
-    data_file = 'Pain_hindlimb_mouse_features_2025-05-23_15-06-55.csv'
+    # data_file = 'Pain_hindlimb_mouse_features_2025-05-23_15-06-55.csv'
+    data_file = 'Post_fused_mouse_features.csv'
 
     full_data = pd.read_csv(os.path.join(data_folder, data_file))
     print(full_data.head())
