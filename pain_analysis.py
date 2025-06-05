@@ -155,7 +155,7 @@ def perform_dimensionality_reduction(
             n_components=n_components,
             random_state=42,
             target_metric=kwargs.get("target_metric", "categorical"),
-            target_weight=kwargs.get("target_weight", 0.5),
+            target_weight=kwargs.get("target_weight", 0),
             n_neighbors=kwargs.get("n_neighbors", 10),
             min_dist=kwargs.get("min_dist", 0.1),
         )
@@ -214,7 +214,7 @@ def perform_dimensionality_reduction(
     datetime = time.strftime("%Y-%m-%d_%H-%M-%S")
     filename = os.path.join(FIGURES_DIR, f"{method.lower()}_projection_{datetime}.png")
     os.makedirs(FIGURES_DIR, exist_ok=True)
-    # plt.savefig(filename, bbox_inches='tight')
+    plt.savefig(filename, bbox_inches='tight')
     plt.show()
 
     if method == "PCA":
@@ -272,19 +272,20 @@ def plot_umap_feature_importance_with_xgboost(X: pd.DataFrame, umap_embedding: n
 
         datetime = time.strftime("%Y-%m-%d_%H-%M-%S")
         filename = os.path.join(FIGURES_DIR, f"xgboost_umap_feature_importance_{component_names[i].lower()}_{datetime}.png")
-        # plt.savefig(filename)
+        plt.savefig(filename)
 
         # SHAP summary
         explainer = shap.Explainer(model, X)
         shap_values = explainer(X)
 
+        plt.figure(figsize=(12, 8))
         shap.summary_plot(shap_values, X, max_display=top_k,
                           plot_size=(12, 8),
                           show=False)  # Delay display until saved
-
+        plt.title(f"SHAP Summary for {component_names[i]}", fontsize=16)
         shap_fig_name = f"shap_summary_{component_names[i].lower()}_{datetime}.png"
         plt.savefig(os.path.join(FIGURES_DIR, shap_fig_name), bbox_inches='tight')
-        plt.show()
+        # plt.show()
 
 def run_permanova_on_umap(umap_coords: np.ndarray, group_labels: list, sample_ids: list = None, n_permutations: int = 999):
     """
@@ -357,13 +358,13 @@ if __name__ == '__main__':
         dataset_label_map, mouse_label_map,
         method="UMAP", n_components=3,
         target_metric='categorical',
-        target_weight=0.5,
+        target_weight=0,
         n_neighbors=15,
         min_dist=0.05,
-        plot=False
+        plot=True
     )
 
-    # # LASSO -> UMAP
+    # LASSO -> UMAP
     # reducer, umap_plot_df = perform_dimensionality_reduction(
     #     X_agg_lasso, y_mouse, y_dataset,
     #     dataset_label_map, mouse_label_map,
@@ -381,8 +382,8 @@ if __name__ == '__main__':
     #     method="PCA", n_components=3
     # )
 
-    # # UMAP -> XGBoost feature importance
-    # umap_embedding = umap_plot_df[["UMAP1", "UMAP2", "UMAP3"]].values
+    # UMAP -> XGBoost feature importance
+    umap_embedding = umap_plot_df[["UMAP1", "UMAP2", "UMAP3"]].values
     # plot_umap_feature_importance_with_xgboost(X_agg, umap_embedding, top_k=30)
 
     ### Run PERMANOVA on UMAP coordinates
@@ -390,28 +391,54 @@ if __name__ == '__main__':
     ## Filter for specific datasets
     umap_plot_df["Dataset_label"] = umap_plot_df["Dataset"].map(dataset_label_map)
     # Only pre_left datasets
-    umap_plot_df = umap_plot_df[umap_plot_df["Dataset_label"].str.contains("pre_left")]
+    # umap_plot_df = umap_plot_df[umap_plot_df["Dataset_label"].str.contains("pre_left")]
     # # Only pre_right datasets
     # umap_plot_df = umap_plot_df[umap_plot_df["Dataset_label"].str.contains("pre_right")]
+    # Only C and E datasets
+    umap_plot_df = umap_plot_df[umap_plot_df["Dataset_label"].str.contains("C|E") & umap_plot_df["Dataset_label"].str.contains("left")]
 
     # Plot UMAP projection
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(18, 6))
     sns.set(style="whitegrid")
-    sns.set_palette("husl")  # Use a color palette suitable for categorical data
-    sns.scatterplot(data=umap_plot_df, x="UMAP1", y="UMAP2", hue="Dataset_label")
-    plt.title("UMAP Projection of Pre-Right Datasets")
-    plt.xlabel("UMAP1")
-    plt.ylabel("UMAP2")
-    plt.legend(title="Dataset", bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.tight_layout()
+    sns.set_palette("husl")
+
+    umap_components = [("UMAP1", "UMAP2"), ("UMAP2", "UMAP3"), ("UMAP1", "UMAP3")]
+    titles = [
+        "UMAP1 vs UMAP2",
+        "UMAP2 vs UMAP3",
+        "UMAP1 vs UMAP3"
+    ]
+
+    for i, (x_comp, y_comp) in enumerate(umap_components):
+        ax = plt.subplot(1, 3, i + 1)
+        sns.scatterplot(
+            data=umap_plot_df,
+            x=x_comp,
+            y=y_comp,
+            hue="Dataset_label",
+            s=100,
+            edgecolor='black',
+            linewidth=0.5,
+            ax=ax,
+            legend=False if i < 2 else "brief"
+        )
+        ax.set_title(titles[i])
+        ax.set_xlabel(x_comp)
+        ax.set_ylabel(y_comp)
+        ax.grid(True)
+
+    handles, labels = ax.get_legend_handles_labels()
+    plt.legend(handles, labels, title="Dataset", bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.suptitle("UMAP Projections of Filtered Datasets", fontsize=16)
+    plt.tight_layout(rect=[0, 0, 0.85, 1])
     plt.show()
 
     ## Apply PERMANOVA
-    group_labels = umap_plot_df["Dataset_label"].values
-    umap_coords = umap_plot_df[["UMAP1", "UMAP2", "UMAP3"]].values
-    permanova_result = run_permanova_on_umap(
-        umap_coords,
-        group_labels,
-        sample_ids=umap_plot_df.index.tolist(),
-        n_permutations=999
-    )
+    # group_labels = umap_plot_df["Dataset_label"].values
+    # umap_coords = umap_plot_df[["UMAP1", "UMAP2", "UMAP3"]].values
+    # permanova_result = run_permanova_on_umap(
+    #     umap_coords,
+    #     group_labels,
+    #     sample_ids=umap_plot_df.index.tolist(),
+    #     n_permutations=999
+    # )
