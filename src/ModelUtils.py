@@ -154,7 +154,10 @@ def train_model(
 
     torch.save({'model_state_dict': best_state,
                 'epoch': best_epoch,
-                'val_loss': best_val_loss},
+                'val_loss': best_val_loss,
+                'input_dim': input_dim,
+                'hidden_dim': hidden_dim,
+                'latent_dim': latent_dim},
                 best_model_path)
     print(f"Best model saved at: {best_model_path} with val loss: {best_val_loss:.4f}")
 
