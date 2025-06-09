@@ -163,7 +163,7 @@ def train_model(
         'train_loss': train_losses,
         'val_loss': val_losses
     })
-    losses_df.to_csv(os.path.join(figures_dir, 'losses.csv'), index=False)
+    losses_df.to_csv(os.path.join(figures_dir, f'losses_{now}.csv'), index=False)
     fig = px.line(losses_df, x='epoch', y=['train_loss', 'val_loss'],
                     labels={'value': 'Loss', 'epoch': 'Epoch'},
                     title='Training and Validation Losses')
