@@ -1,75 +1,16 @@
+import torch
+import os
+import timeit
 import pandas as pd
 import numpy as np
-import torch
+import plotly.express as px
 
-def segment_steps_by_phase(df, phase_col="phase"):
-    """
-    Segments a DataFrame into steps based on the specified phase column.
-    """
-    phases = df[phase_col]
+from datetime import datetime
+from torch.utils.data import DataLoader, TensorDataset
+from sklearn.model_selection import train_test_split
+from tqdm.notebook import tqdm
 
-    # 1. Find where phase changes
-    changes = phases != phases.shift()
-    change_points = df.index[changes]
-
-    # 2. Get the phases at these change points
-    change_phases = phases.loc[change_points].reset_index(drop=True)
-
-    # 3. Identify "stance" → ... → "swing" → "stance" sequences
-    segments = []
-    i = 0
-    while i < len(change_phases) - 2:
-        if change_phases[i] == "stance":
-            swing_found = False
-            for j in range(i+1, len(change_phases)):
-                if change_phases[j] == "swing":
-                    swing_found = True
-                elif swing_found and change_phases[j] == "stance":
-                    # # Skip first and last segment
-                    # if i == 0 or j == len(change_phases) - 1:
-                    #     i = j - 1
-                    #     break
-                    start_idx = change_points[i]
-                    end_idx = change_points[j] - 1
-                    segment = df.loc[start_idx:end_idx].drop(columns=["Step Phase Forelimb", "Step Phase Hindlimb"], errors='ignore')
-                    
-                    ## Reset x to 0
-                    pose_cols = [col for col in segment.columns if 'pose' in col]
-                    segment[pose_cols] = segment[pose_cols] - segment[pose_cols].iloc[0]
-                    segments.append(segment)
-                    i = j - 1  # skip ahead
-                    break
-            else:
-                # no closing stance; go to end
-                start_idx = change_points[i]
-                segment = df.loc[start_idx:].drop(columns=["Step Phase Forelimb", "Step Phase Hindlimb"], errors='ignore')
-                ## Reset x to 0
-                pose_cols = [col for col in segment.columns if 'pose' in col]
-                segment[pose_cols] = segment[pose_cols] - segment[pose_cols].iloc[0]
-                segments.append(segment)
-                break
-        i += 1
-
-    return segments
-
-def steps_to_tensor(step_dicts, scaler):
-    """
-        Convert a list of step dictionaries to a padded tensor of shape (num_steps, max_length, num_features).
-
-        Returns:
-            - A tensor of shape (num_steps, max_length, num_features) containing the scaled step data (B, T, F).
-            - A tensor of lengths for each step indicating the actual length of each step (B).
-    """
-    step_arrays = [scaler.transform(sd["step"].values) for sd in step_dicts]
-    lengths = [len(step) for step in step_arrays]
-    max_len = max(lengths)
-    dim = step_arrays[0].shape[1]
-
-    padded = np.zeros((len(step_arrays), max_len, dim), dtype=np.float32)
-    for i, arr in enumerate(step_arrays):
-        padded[i, :len(arr)] = arr
-
-    return torch.tensor(padded), torch.tensor(lengths)
+from Models import LSTMVAE_t
 
 def masked_mse_loss(pred, target, lengths):
     """
@@ -98,7 +39,7 @@ def masked_vae_loss(x_hat, x, lengths, mu, logvar, free_bits=0.1):
 
     return recon_loss + kl_div
 
-def masked_vae_t_loss(x_hat, x, lengths, mu_t, logvar_t, beta=1.0, free_bits=0.5):
+def masked_vae_t_loss(x_hat, x, lengths, mu_t, logvar_t, free_bits=0.5):
     """
     Time-resolved VAE loss with masking support, per-unit free bits.
     """
@@ -127,7 +68,112 @@ def masked_vae_t_loss(x_hat, x, lengths, mu_t, logvar_t, beta=1.0, free_bits=0.5
     # kl_raw = (kl_per_unit * time_mask.unsqueeze(-1)).sum() / time_mask.sum()
     # tqdm.write(f"Reconstruction loss: {recon_loss.item():.4f}, Raw KL: {kl_raw.item():.4f}, Clamped KL: {kl_loss.item():.4f}, β: {beta:.3f}")
 
-    return recon_loss + beta * kl_loss
+    return recon_loss + kl_loss
+
+def load_model(model_path, input_dim, hidden_dim, latent_dim):
+    """
+    Loads a model from the given path.
+    """
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model = LSTMVAE_t(input_dim, hidden_dim, latent_dim)
+    checkpoint = torch.load(model_path, map_location=device)
+    print(f"Loaded model from epoch {checkpoint['epoch']} with validation loss {checkpoint['val_loss']:.4f}")
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.to(device)
+    return model
+
+def train_model(
+        step_tensor, lengths, input_dim, hidden_dim, latent_dim,
+        batch_size, lr, num_epochs, patience, min_delta,
+        models_dir, figures_dir, title_font_size, axis_title_font_size, legend_font_size
+    ):
+    """
+    Trains the LSTMVAE_t model and saves the best model and loss plots.
+    """
+
+    train_idx, val_idx = train_test_split(np.arange(len(step_tensor)), test_size=0.2, random_state=42)
+    train_data = TensorDataset(step_tensor[train_idx], lengths[train_idx])
+    val_data = TensorDataset(step_tensor[val_idx], lengths[val_idx])
+
+    def collate_fn(batch):
+        x, lengths = zip(*batch)
+        return torch.stack(x), torch.stack(lengths)
+
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"Using device: {device}")
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+    val_loader = DataLoader(val_data, batch_size=batch_size, collate_fn=collate_fn)
+
+    model = LSTMVAE_t(input_dim, hidden_dim, latent_dim).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+
+    early_stopper = EarlyStopping(patience=patience, min_delta=min_delta)
+    best_val_loss = float('inf')
+    now = datetime.now().strftime("%Y%m%d_%H%M%S")
+    best_model_path = os.path.join(models_dir, f'lstm_autoencoder_{now}.pt')
+
+    val_losses = []
+    train_losses = []
+    for epoch in tqdm(range(num_epochs)):
+        t1 = timeit.default_timer()
+        model.train()
+        train_loss = 0
+        for batch_x, batch_lens in train_loader:
+            batch_x, batch_lens = batch_x.to(device), batch_lens.to(device)
+            x_hat, mu_t, logvar_t = model(batch_x, batch_lens)
+            loss = masked_vae_t_loss(x_hat, batch_x, batch_lens, mu_t, logvar_t)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item()
+
+        model.eval()
+        val_loss = 0
+        with torch.no_grad():
+            for batch_x, batch_lens in val_loader:
+                batch_x, batch_lens = batch_x.to(device), batch_lens.to(device)
+                x_hat, mu_t, logvar_t = model(batch_x, batch_lens)
+                loss = masked_vae_t_loss(x_hat, batch_x, batch_lens, mu_t, logvar_t)
+                val_loss += loss.item()
+        avg_train = train_loss / len(train_loader)
+        avg_val = val_loss / len(val_loader)
+        val_losses.append(avg_val)
+        train_losses.append(avg_train)
+        t2 = timeit.default_timer()
+
+        if avg_val < best_val_loss:
+            print(f"Epoch {epoch+1}, Train: {avg_train:.4f} - Val: {avg_val:.4f} - Time: {t2-t1:.2f}s")
+            best_val_loss = avg_val
+            best_epoch = epoch
+            best_state = model.state_dict()
+
+        early_stopper.step(avg_val)
+        if early_stopper.should_stop:
+            print(f"Early stopping triggered at epoch {epoch+1}")
+            break
+
+    torch.save({'model_state_dict': best_state,
+                'epoch': best_epoch,
+                'val_loss': best_val_loss},
+                best_model_path)
+    print(f"Best model saved at: {best_model_path} with val loss: {best_val_loss:.4f}")
+
+    losses_df = pd.DataFrame({
+        'epoch': np.arange(len(train_losses)),
+        'train_loss': train_losses,
+        'val_loss': val_losses
+    })
+    losses_df.to_csv(os.path.join(figures_dir, 'losses.csv'), index=False)
+    fig = px.line(losses_df, x='epoch', y=['train_loss', 'val_loss'],
+                    labels={'value': 'Loss', 'epoch': 'Epoch'},
+                    title='Training and Validation Losses')
+    fig.update_layout(title_font_size=title_font_size,
+                        xaxis_title_font_size=axis_title_font_size,
+                        yaxis_title_font_size=axis_title_font_size,
+                        legend_font_size=legend_font_size)
+    fig.show()
+
+    return model
 
 class EarlyStopping:
     def __init__(self, patience=10, min_delta=1e-4):
