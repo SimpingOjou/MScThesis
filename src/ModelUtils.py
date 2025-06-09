@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 from tqdm.notebook import tqdm
 
-from Models import LSTMVAE_t
+from src.Models import LSTMVAE_t
 
 def masked_mse_loss(pred, target, lengths):
     """
