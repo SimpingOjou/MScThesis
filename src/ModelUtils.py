@@ -85,7 +85,7 @@ def load_model(model_path, input_dim, hidden_dim, latent_dim):
 def train_model(
         step_tensor, lengths, input_dim, hidden_dim, latent_dim,
         batch_size, lr, num_epochs, patience, min_delta,
-        models_dir, figures_dir, title_font_size, axis_title_font_size, legend_font_size
+        models_dir
     ):
     """
     Trains the LSTMVAE_t model and saves the best model and loss plots.
@@ -158,6 +158,11 @@ def train_model(
                 best_model_path)
     print(f"Best model saved at: {best_model_path} with val loss: {best_val_loss:.4f}")
 
+    return model, train_losses, val_losses
+
+def save_model_losses(train_losses, val_losses, figures_dir, title_font_size, axis_title_font_size, legend_font_size):
+    now = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
     losses_df = pd.DataFrame({
         'epoch': np.arange(len(train_losses)),
         'train_loss': train_losses,
@@ -173,8 +178,19 @@ def train_model(
                         legend_font_size=legend_font_size)
     fig.show()
 
-    return model
-
+def load_and_plot_losses(losses_file, title_font_size, axis_title_font_size, legend_font_size):
+    """
+    Load losses from a CSV file and plot them.
+    """
+    losses_df = pd.read_csv(losses_file)
+    fig = px.line(losses_df, x='epoch', y=['train_loss', 'val_loss'],
+                    labels={'value': 'Loss', 'epoch': 'Epoch'},
+                    title='Training and Validation Losses')
+    fig.update_layout(title_font_size=title_font_size,
+                        xaxis_title_font_size=axis_title_font_size,
+                        yaxis_title_font_size=axis_title_font_size,
+                        legend_font_size=legend_font_size)
+    fig.show()
 class EarlyStopping:
     def __init__(self, patience=10, min_delta=1e-4):
         self.patience = patience
