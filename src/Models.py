@@ -126,5 +126,5 @@ class LSTMVAE_t(nn.Module):
         packed_dec, _ = self.decoder_lstm(packed_z)
         h_dec, _ = nn.utils.rnn.pad_packed_sequence(packed_dec, batch_first=True, total_length=x.size(1))
 
-        x_hat = self.output_layer(h_dec)  # (B, T, input_dim)
+        x_hat = self.output_layer(h_dec)  # (B, T, F)
         return x_hat, mu_t, logvar_t
