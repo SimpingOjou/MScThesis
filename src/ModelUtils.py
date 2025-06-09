@@ -149,7 +149,7 @@ def train_model(
 
         early_stopper.step(avg_val)
         if early_stopper.should_stop:
-            print(f"Early stopping triggered at epoch {epoch+1}")
+            print(f"Early stopping triggered at epoch {epoch+1}. Best val at epoch {best_val_loss:.4f}")
             break
 
     torch.save({'model_state_dict': best_state,
