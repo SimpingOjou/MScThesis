@@ -114,11 +114,11 @@ class LSTMVAE_t(nn.Module):
         # Pack padded sequences
         packed = nn.utils.rnn.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False)
         packed_out, _ = self.encoder_lstm(packed)
-        h_t, _ = nn.utils.rnn.pad_packed_sequence(packed_out, batch_first=True, total_length=x.size(1))
+        h_t, _ = nn.utils.rnn.pad_packed_sequence(packed_out, batch_first=True, total_length=x.size(1)) # (B, T, H)
 
         # Project to latent space
         mu_t = self.fc_mu(h_t)        # (B, T, L)
-        logvar_t = self.fc_logvar(h_t)
+        logvar_t = self.fc_logvar(h_t) # (B, T, L)
         z_t = self.reparameterize(mu_t, logvar_t)
 
         # Decode z_t
@@ -127,4 +127,4 @@ class LSTMVAE_t(nn.Module):
         h_dec, _ = nn.utils.rnn.pad_packed_sequence(packed_dec, batch_first=True, total_length=x.size(1))
 
         x_hat = self.output_layer(h_dec)  # (B, T, F)
-        return x_hat, mu_t, logvar_t
+        return x_hat, mu_t, logvar_t # shape (B, T, F), (B, T, L), (B, T, L)
