@@ -13,13 +13,24 @@ class LSTMAutoencoder(nn.Module):
                 num_layers (int): Number of LSTM layers.
         """
         super(LSTMAutoencoder, self).__init__()
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.encoder = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
         self.hidden_to_latent = nn.Linear(hidden_dim, latent_dim)
         self.latent_to_hidden = nn.Linear(latent_dim, hidden_dim)
         self.decoder = nn.LSTM(hidden_dim, input_dim, num_layers, batch_first=True)
 
     def forward(self, x, lengths):
-        packed = nn.utils.rnn.pack_padded_sequence(x, lengths.cpu(), batch_first=True, enforce_sorted=False) # B, T, F
+        """
+            Forward pass of the LSTM Autoencoder.
+            Args:
+                x (torch.Tensor): Input tensor of shape (B, T, F).
+                lengths (torch.Tensor): Lengths of each sequence in the batch (B).
+            Returns:
+                out (torch.Tensor): Output tensor of shape (B, T, F).
+                z (torch.Tensor): Latent representation of shape (B, L).
+        """
+        x, lengths = x.to(self._device), lengths.to(self._device)
+        packed = nn.utils.rnn.pack_padded_sequence(x, lengths, batch_first=True, enforce_sorted=False) # B, T, F
         encoded, _ = self.encoder(packed) # B, T, H
         unpacked, _ = nn.utils.rnn.pad_packed_sequence(encoded, batch_first=True) # B, T, H
 
