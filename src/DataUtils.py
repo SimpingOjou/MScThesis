@@ -3,9 +3,11 @@ import pandas as pd
 import numpy as np
 import torch
 
+from collections import defaultdict
+
 STEP_PHASE_COLS = ["Step Phase Forelimb", "Step Phase Hindlimb"]
 TIME_COLS = ["Time (s)", "Frame"]
-POSE_KEY = "pose"
+POSE_KEYS = ["pose", "X"]
 
 def load_data_from_directory(data_dir: str) -> dict:
     """
@@ -54,37 +56,51 @@ def segment_steps_by_phase(df, phase_col="phase"):
 
     # 3. Identify "stance" → ... → "swing" → "stance" sequences
     segments = []
+    indexes : list[dict[str, tuple[int, int]]] = []
     i = 0
-    while i < len(change_phases) - 2:
+    while i < len(change_phases) - 2: # iterate through change phases to look for "stance"
         if change_phases[i] == "stance":
             swing_found = False
-            for j in range(i+1, len(change_phases)):
-                if change_phases[j] == "swing":
+
+            for j in range(i+1, len(change_phases)): # iterate through next change phases to look for the next "swing"
+                if not swing_found and change_phases[j] == "swing":
+                    swing_idx = j
                     swing_found = True
-                elif swing_found and change_phases[j] == "stance":
-                    # # Skip first and last segment
-                    # if i == 0 or j == len(change_phases) - 1:
-                    #     i = j - 1
-                    #     break
+                    continue
+                if swing_found:
                     start_idx = change_points[i]
                     end_idx = change_points[j] - 1
                     segment = df.loc[start_idx:end_idx].drop(columns=STEP_PHASE_COLS, errors='ignore')
+                    segment.reset_index(drop=True, inplace=True)
                     
                     ## Reset x to 0
-                    pose_cols = [col for col in segment.columns if POSE_KEY in col]
+                    pose_cols = [col for col in segment.columns if all(key in col.lower() for key in POSE_KEYS)]
                     segment[pose_cols] = segment[pose_cols] - segment[pose_cols].iloc[0]
                     segments.append(segment)
-                    i = j - 1  # skip ahead
+
+                    indexes.append({
+                        "stance" : (start_idx, swing_idx -1),
+                        "swing" : (swing_idx, end_idx)
+                    })
+                    i = j  # skip ahead to end of swing
                     break
-            else:
+            else: # else clause of for loop, no swing found
                 # no closing stance; go to end
                 start_idx = change_points[i]
                 segment = df.loc[start_idx:].drop(columns=STEP_PHASE_COLS, errors='ignore')
+                segment.reset_index(drop=True, inplace=True)
+
+                assert swing_found, "Swing not found in the above for loop"
 
                 ## Reset x to 0
-                pose_cols = [col for col in segment.columns if POSE_KEY in col.lower()]
+                pose_cols = [col for col in segment.columns if all(key in col.lower() for key in POSE_KEYS)]
                 segment[pose_cols] = segment[pose_cols] - segment[pose_cols].iloc[0]
                 segments.append(segment)
+
+                indexes.append({
+                        "stance" : (start_idx, swing_idx -1),
+                        "swing" : (swing_idx, end_idx)
+                    })
                 break
         i += 1
 
@@ -102,8 +118,8 @@ def segment_all_steps(data):
             - mouse: Mouse identifier.
             - run: Run identifier.
     """
-    segmented_hindsteps = []
-    segmented_foresteps = []
+    segmented_hindsteps : list[dict[str, pd.DataFrame | str]] = []
+    segmented_foresteps : list[dict[str, pd.DataFrame | str]] = []
     for group in data:
         for mouse in data[group]:
             for run in data[group][mouse]:
@@ -146,3 +162,41 @@ def steps_to_tensor(step_dicts, scaler):
         padded[i, :len(arr)] = arr
 
     return torch.tensor(padded), torch.tensor(lengths)
+
+def average_run_features_by_mouse(segmented_steps_dicts)->list[dict[str, pd.DataFrame]]:
+    """
+    Computes masked average over all steps for each mouse.
+    
+    Returns:
+        dict[str, pd.DataFrame|str]: Mouse ID -> averaged time series (T_max, F)
+    """
+    mouse_steps = defaultdict(lambda: defaultdict(list))
+    for entry in segmented_steps_dicts:
+        group = entry["group"]
+        mouse = entry["mouse"]
+        step_df = entry["step"]
+        mouse_steps[group][mouse].append(step_df)
+
+    averaged_by_mouse = []
+    for group, mouse_dict in mouse_steps.items():
+        for mouse, steps in mouse_dict.items():
+            # Determine max length
+            max_len = max(len(step) for step in steps)
+            num_feats = steps[0].shape[1]
+
+            # Initialize padded tensor and mask
+            padded = np.full((len(steps), max_len, num_feats), np.nan, dtype=np.float32)
+            for i, step in enumerate(steps):
+                length = len(step)
+                padded[i, :length, :] = step.values
+
+            # Masked mean (ignores NaNs)
+            mean_trace = np.nanmean(padded, axis=0)
+            averaged_step_df = pd.DataFrame(mean_trace, columns=steps[0].columns)
+            averaged_by_mouse.append({
+                "step": averaged_step_df,
+                "group": group,
+                "mouse": mouse,
+            })
+
+    return averaged_by_mouse
