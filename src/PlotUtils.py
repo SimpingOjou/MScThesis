@@ -101,6 +101,16 @@ def create_frame_trace(frame_data, x_keys, y_keys, joint_names, frame, phase, al
         showlegend=False
     )
 
+# === Spatial Normalization Helper (One Axis) ===
+def get_normalized_feature(df, key):
+    values = df[key].values
+    return normalize_spatial_curve(values)
+
+def normalize_spatial_curve(values):
+    v_min, v_max = np.min(values), np.max(values)
+    return (values - v_min) / (v_max - v_min) if v_max > v_min else values * 0
+
+# === Joint Trajectory Segmentation ===
 def get_joint_trajectory_segmented_by_phase(step_df, x_key, y_key, stances, swings, total_frames):
     segments = []
     current_phase = None
@@ -124,28 +134,38 @@ def get_joint_trajectory_segmented_by_phase(step_df, x_key, y_key, stances, swin
 
     return segments
 
+def compute_avg_stance_ratio(steps):
+    ratios = []
+    for step in steps:
+        s1, s2 = step['stance']
+        sw1, sw2 = step['swing']
+        stance = s2 - s1 + 1
+        swing = sw2 - sw1 + 1
+        total = stance + swing
+        if total > 0:
+            ratios.append(stance / total)
+    return np.mean(ratios) if ratios else 0.6
+
 # === Shared Phase-Aligned Plot Helper ===
 def compute_phase_aligned_average(steps, feature_key, n_points):
     curves, phases = [], []
+
+    step_ratio = compute_avg_stance_ratio(steps)  # use group-level ratio
+
     for step in steps:
         df = step['step']
         if feature_key not in df.columns:
             continue
 
-        stance_start, stance_end = step['stance']
-        swing_start, swing_end = step['swing']
-        stances = [(stance_start, stance_end)]
-        swings = [(swing_start, swing_end)]
-
-        frames = df.index.to_numpy()
         values = df[feature_key].to_numpy()
+        if len(values) < 2:
+            continue
 
-        phase_labels = [determine_phase(idx, stances, swings) for idx in frames]
-        norm_time = np.linspace(0, 1, len(values))
         interp_time = np.linspace(0, 1, n_points)
-        interp_values = np.interp(interp_time, norm_time, values)
-        interp_indices = np.round(np.linspace(0, len(values) - 1, n_points)).astype(int)
-        interp_phases = [phase_labels[i] for i in interp_indices]
+        interp_values = np.interp(interp_time, np.linspace(0, 1, len(values)), values)
+
+        # Use same stance/swing split across all steps in this group
+        interp_phases = ['stance' if t < step_ratio else 'swing' for t in interp_time]
 
         curves.append(interp_values)
         phases.append(interp_phases)
@@ -155,11 +175,14 @@ def compute_phase_aligned_average(steps, feature_key, n_points):
 
     curves = np.array(curves)
     phases = np.array(phases)
+
     mean_vals = np.mean(curves, axis=0)
     sem_vals = np.std(curves, axis=0) / np.sqrt(curves.shape[0])
-    majority_phase = [Counter(phases[:, i]).most_common(1)[0][0] for i in range(n_points)]
 
-    return mean_vals, sem_vals, majority_phase
+    interp_time = np.linspace(0, 1, n_points)
+    group_phases = ['stance' if t < step_ratio else 'swing' for t in interp_time]
+
+    return mean_vals, sem_vals, group_phases
 
 
 def plot_phase_aligned_trace(fig, row, col, time_vals, mean_vals, sem_vals, phase_labels, light=False):

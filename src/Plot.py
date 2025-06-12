@@ -9,14 +9,15 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from plotly.subplots import make_subplots
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 from src.PlotUtils import (
     PLOT_STYLE,
     majority_vote, determine_phase, get_phase_color, 
     get_joint_trajectory_segmented_by_phase,
     extract_joint_keys, create_frame_trace, 
-    compute_phase_aligned_average, plot_phase_aligned_trace
+    compute_phase_aligned_average, plot_phase_aligned_trace,
+    normalize_spatial_curve
 )
 
 # === Step Plotting Function ===
@@ -496,8 +497,6 @@ def plot_mean_spatial_trajectory(segmented_steps,
                                   x_key='rhindlimb lHindfingers - X pose (m)',
                                   y_key='rhindlimb lHindfingers - Y pose (m)',
                                   n_points=100):
-    import numpy as np
-
     aligned_x, aligned_y, aligned_phase = [], [], []
 
     for step in segmented_steps:
@@ -577,9 +576,6 @@ def plot_mean_spatial_trajectory(segmented_steps,
 
 # === compare_phase_aligned_average_single ===
 def compare_phase_aligned_average_single(healthy_steps, unhealthy_steps, feature_keys, n_points=100):
-    import numpy as np
-    from plotly.subplots import make_subplots
-
     pose_keys = [k for k in feature_keys if ('Angle -' in k or 'CoM' in k) and 'velocity' not in k and 'acceleration' not in k]
     vel_keys = [k for k in feature_keys if 'velocity' in k and 'acceleration' not in k]
     acc_keys = [k for k in feature_keys if 'acceleration' in k]
@@ -598,10 +594,11 @@ def compare_phase_aligned_average_single(healthy_steps, unhealthy_steps, feature
             plot_phase_aligned_trace(fig, row_idx, col_idx + 1, time_vals, h_mean, h_sem, h_phase, light=False)
             plot_phase_aligned_trace(fig, row_idx, col_idx + 1, time_vals, u_mean, u_sem, u_phase, light=True)
 
+    name = 'Phase-Aligned'
     fig.update_layout(
         height=350 * 3,
         width=300 * len(grouped),
-        title="Phase-Aligned Healthy vs Unhealthy Comparison",
+        title=f"{name} Healthy vs Unhealthy Comparison",
         template='plotly_white'
     )
     fig.show()
@@ -609,9 +606,6 @@ def compare_phase_aligned_average_single(healthy_steps, unhealthy_steps, feature
 
 # === compare_phase_aligned_average_xy ===
 def compare_phase_aligned_average_xy(healthy_steps, unhealthy_steps, feature_keys, n_points=100):
-    import numpy as np
-    from plotly.subplots import make_subplots
-
     x_keys = [k for k in feature_keys if 'X' in k]
     y_keys = [k for k in feature_keys if 'Y' in k]
     max_len = max(len(x_keys), len(y_keys))
@@ -632,10 +626,11 @@ def compare_phase_aligned_average_xy(healthy_steps, unhealthy_steps, feature_key
             plot_phase_aligned_trace(fig, row_idx, col_idx + 1, time_vals, h_mean, h_sem, h_phase, light=False)
             plot_phase_aligned_trace(fig, row_idx, col_idx + 1, time_vals, u_mean, u_sem, u_phase, light=True)
 
+    name = 'Phase-Aligned'
     fig.update_layout(
         height=700,
         width=350 * max_len,
-        title="Phase-Aligned Healthy vs Unhealthy Comparison (X/Y)",
+        title=f"{name} Healthy vs Unhealthy Comparison (X/Y)",
         template='plotly_white'
     )
     fig.show()
@@ -643,9 +638,6 @@ def compare_phase_aligned_average_xy(healthy_steps, unhealthy_steps, feature_key
 
 # === plot_phase_aligned_average_single ===
 def plot_phase_aligned_average_single(segmented_steps, feature_keys, n_points=100):
-    import numpy as np
-    from plotly.subplots import make_subplots
-
     pose_keys = [k for k in feature_keys if ('Angle -' in k or 'CoM' in k) and 'velocity' not in k and 'acceleration' not in k]
     vel_keys = [k for k in feature_keys if 'velocity' in k and 'acceleration' not in k]
     acc_keys = [k for k in feature_keys if 'acceleration' in k]
@@ -674,9 +666,6 @@ def plot_phase_aligned_average_single(segmented_steps, feature_keys, n_points=10
 
 # === plot_phase_aligned_average_xy ===
 def plot_phase_aligned_average_xy(segmented_steps, feature_keys, n_points=100):
-    import numpy as np
-    from plotly.subplots import make_subplots
-
     x_keys = [k for k in feature_keys if 'X' in k]
     y_keys = [k for k in feature_keys if 'Y' in k]
     max_len = max(len(x_keys), len(y_keys))
