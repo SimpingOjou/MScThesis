@@ -592,7 +592,8 @@ def compare_phase_aligned_average_single(healthy_steps, unhealthy_steps, feature
         title=f"{name} Healthy vs Unhealthy Comparison",
         template='plotly_white',
         title_font=dict(size= PLOT_STYLE.title_font_size),
-        annotations=[dict(font=dict(size=14)) for _ in fig.layout.annotations]
+        annotations=[dict(font=dict(size=14)) for _ in fig.layout.annotations],
+        xaxis=dict(showgrid=False)
     )
     if figure_path:    
         # save the figure in a vectorial format
@@ -703,6 +704,7 @@ def compare_spatial_angle_progression_over_time(
         width=300 * n_cols,
         title="Angle, Velocity, and Acceleration over Time (Normalized to Angle Range)",
         xaxis_title="Time (s)" if frame_rate else "Frame Index",
+        xaxis=dict(showgrid=False),
         yaxis_title="Normalized Units",
         template='plotly_white'
     )
@@ -738,7 +740,8 @@ def compare_phase_aligned_average_xy(healthy_steps, unhealthy_steps, feature_key
         height=700,
         width=350 * max_len,
         title=f"{name} Healthy vs Unhealthy Comparison (X/Y)",
-        template='plotly_white'
+        template='plotly_white',
+        xaxis=dict(showgrid=False)
     )
     if figure_path:
         fig.write_image(figure_path, format='svg')
@@ -964,6 +967,7 @@ def compare_spatial_progression_xy_over_time(
         width=350 * max_len,
         title="Normalized XY Progression over Time (Healthy vs. Unhealthy)",
         xaxis_title="Time (s)" if frame_rate else "Frame Index",
+        xaxis=dict(showgrid=False),
         yaxis_title="Normalized to Step Length / Height",
         template='plotly_white'
     )
@@ -995,7 +999,8 @@ def plot_phase_aligned_average_single(segmented_steps, feature_keys, n_points=10
         height=350 * 3,
         width=300 * len(grouped),
         title="Phase-Aligned Averages by Kinematic Type with SEM",
-        template='plotly_white'
+        template='plotly_white',
+        xaxis=dict(showgrid=False)
     )
     if figure_path:
         # save the figure in a vectorial format
@@ -1028,7 +1033,8 @@ def plot_phase_aligned_average_xy(segmented_steps, feature_keys, n_points=100, f
         height=700,
         width=500 * max_len,
         title="Phase-Aligned Averages with SEM",
-        template='plotly_white'
+        template='plotly_white',
+        xaxis=dict(showgrid=False)
     )
     if figure_path:
         # save the figure in a vectorial format
