@@ -10,7 +10,7 @@ PlotStyle = namedtuple("PlotStyle", [
 ])
 
 PLOT_STYLE = PlotStyle(
-    scatter_size=20,
+    scatter_size=16,
     scatter_symbol="circle",
     scatter_line_width=1,
     legend_font_size=18,

@@ -231,17 +231,8 @@ def plot_animated_trajectory(data, keys, limb_name='Hindlimb'):
         processed_count += 1
 
 # === Trajectory with Dual Joint Traces ===
-def plot_trajectory_with_joint_traces(data, keys_1, keys_2, limb_name='Hindlimb'):
-    max_plots = 2
-    processed_count = 0
-
+def plot_trajectory_with_joint_traces(data, keys_1, keys_2, limb_name='Hindlimb', figure_path=None):
     for exp in data:
-        if processed_count >= max_plots:
-            break
-
-        if PLOT_STYLE.healthy_key not in exp["group"]:
-            continue
-
         step_df = exp["data"]
         mouse = exp["mouse"]
         group = exp["group"]
@@ -268,7 +259,7 @@ def plot_trajectory_with_joint_traces(data, keys_1, keys_2, limb_name='Hindlimb'
                 continue
             frame_data = step_df.loc[frame]
             phase = determine_phase(frame, stances, swings)
-            alpha = 0.3 + 0.7 * i / total_frames
+            alpha = 1
             trace1 = create_frame_trace(frame_data, x_keys, y_keys, joint_names, frame, phase, alpha=alpha)
             trace2 = create_frame_trace(frame_data, x_joint_keys, y_joint_keys, joint_names_2, frame, phase, alpha=alpha)
             fig.add_trace(trace1, row=1, col=1)
@@ -286,15 +277,14 @@ def plot_trajectory_with_joint_traces(data, keys_1, keys_2, limb_name='Hindlimb'
             yaxis2=dict(title="", showgrid=False, title_font=dict(size=PLOT_STYLE.axis_title_font_size)),
         )
 
-        fig.show()
-        processed_count += 1
+        if figure_path:
+            filename = f"{group}_{mouse}_{run}_trajectory_with_foresteps.svg"
+            fig.write_image(os.path.join(figure_path, filename), format='svg')
+        else:
+            fig.show()
 
 # === Compare Step Features in Batches ===
 def compare_step_features_in_batches(step_dict, batch_size=25, output_dir="./figures/SCI"):
-    import os
-    import itertools
-    from plotly.subplots import make_subplots
-
     os.makedirs(os.path.abspath(output_dir), exist_ok=True)
 
     step_df = step_dict["step"]
