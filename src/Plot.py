@@ -74,7 +74,7 @@ def plot_step_trajectory(segmented_steps, keys, limb_name='Hindlimb',
                     x=xs,
                     y=ys,
                     mode='lines+markers',
-                    line=dict(width=1, color=color),
+                    line=dict(width=PLOT_STYLE.scatter_line_width, color=color),
                     marker=dict(size=PLOT_STYLE.scatter_size, color=color, symbol=PLOT_STYLE.scatter_symbol),
                     showlegend=False,
                     hoverinfo='skip'
@@ -423,8 +423,8 @@ def plot_umap_all_steps(segmented_steps, n_neighbors=15, min_dist=0.1):
         swing_start, swing_end = step_data["swing"]
         stances = [(stance_start, stance_end)]
         swings = [(swing_start, swing_end)]
-
-        features = [col for col in df.columns if 'pose' in col or 'CoM' in col]
+        # decomporre in corpo in pezzi e far vedere che ogni parte riflette il SCI
+        features = [col for col in df.columns if ('pose' in col or 'CoM' in col) and 'hindlimb' in col.lower()]
         if not features:
             continue
 
@@ -575,13 +575,14 @@ def plot_mean_spatial_trajectory(segmented_steps,
 
 
 # === compare_phase_aligned_average_single ===
-def compare_phase_aligned_average_single(healthy_steps, unhealthy_steps, feature_keys, n_points=100):
+def compare_phase_aligned_average_single(healthy_steps, unhealthy_steps, feature_keys, n_points=100, figure_path=None):
     pose_keys = [k for k in feature_keys if ('Angle -' in k or 'CoM' in k) and 'velocity' not in k and 'acceleration' not in k]
     vel_keys = [k for k in feature_keys if 'velocity' in k and 'acceleration' not in k]
     acc_keys = [k for k in feature_keys if 'acceleration' in k]
     grouped = list(zip(pose_keys, vel_keys, acc_keys))
 
     fig = make_subplots(rows=3, cols=len(grouped), shared_xaxes=True,
+                        subplot_titles=pose_keys + vel_keys + acc_keys,
                         horizontal_spacing=0.03, vertical_spacing=0.08)
     time_vals = np.linspace(0, 100, n_points)
 
@@ -599,13 +600,129 @@ def compare_phase_aligned_average_single(healthy_steps, unhealthy_steps, feature
         height=350 * 3,
         width=300 * len(grouped),
         title=f"{name} Healthy vs Unhealthy Comparison",
+        template='plotly_white',
+        title_font=dict(size= PLOT_STYLE.title_font_size),
+        annotations=[dict(font=dict(size=14)) for _ in fig.layout.annotations]
+    )
+    if figure_path:    
+        # save the figure in a vectorial format
+        fig.write_image(figure_path, format='svg')
+    else:
+        fig.show()
+
+def compare_spatial_angle_progression_over_time(
+    healthy_steps, unhealthy_steps,
+    feature_keys, frame_rate=200, n_points=100,
+    figure_path=None
+):
+
+    def compute_derivatives(arr, dt):
+        vel = np.gradient(arr, dt)
+        acc = np.gradient(vel, dt)
+        return vel, acc
+
+    def interpolate_group(steps, key):
+        all_times, all_angles, all_vels, all_accs, all_phases = [], [], [], [], []
+
+        for step in steps:
+            df = step['step']
+            if key not in df.columns:
+                continue
+
+            angle = df[key].to_numpy()
+            frames = df.index.to_numpy()
+            times = frames / frame_rate if frame_rate else frames - frames[0]
+            dt = 1.0 / frame_rate if frame_rate else 1.0
+
+            angle_range = np.max(angle) - np.min(angle)
+            if angle_range == 0:
+                continue
+
+            norm_angle = (angle - angle[0]) / angle_range
+            vel, acc = compute_derivatives(norm_angle, dt)
+
+            interp_t = np.linspace(times[0], times[-1], n_points)
+            interp_a = np.interp(interp_t, times, norm_angle)
+            interp_v = np.interp(interp_t, times, vel)
+            interp_ac = np.interp(interp_t, times, acc)
+
+            stance_start, stance_end = step["stance"]
+            swing_start, swing_end = step["swing"]
+            stances = [(stance_start, stance_end)]
+            swings = [(swing_start, swing_end)]
+
+            interp_phases = [
+                determine_phase(int(np.interp(t, times, frames)), stances, swings)
+                for t in interp_t
+            ]
+
+            all_times.append(interp_t)
+            all_angles.append(interp_a)
+            all_vels.append(interp_v)
+            all_accs.append(interp_ac)
+            all_phases.append(interp_phases)
+
+        if not all_times:
+            return None, None, None, None, None
+
+        all_angles = np.array(all_angles)
+        all_vels = np.array(all_vels)
+        all_accs = np.array(all_accs)
+        all_phases = np.array(all_phases)
+        mean_t = np.mean(np.array(all_times), axis=0)
+
+        def summary(arr):
+            return np.mean(arr, axis=0), np.std(arr, axis=0) / np.sqrt(arr.shape[0])
+
+        a_mean, a_sem = summary(all_angles)
+        v_mean, v_sem = summary(all_vels)
+        ac_mean, ac_sem = summary(all_accs)
+        dominant_phases = [Counter(all_phases[:, i]).most_common(1)[0][0] for i in range(n_points)]
+
+        return mean_t, (a_mean, a_sem), (v_mean, v_sem), (ac_mean, ac_sem), dominant_phases
+
+    angle_keys = [k for k in feature_keys if 'velocity' not in k and 'acceleration' not in k]
+    n_cols = len(angle_keys)
+    fig = make_subplots(
+        rows=3, cols=n_cols,
+        shared_xaxes=True,
+        vertical_spacing=0.08,
+        subplot_titles=[
+            f"{key} (Angle)" for key in feature_keys
+        ] + [
+            f"{key} (Velocity)" for key in feature_keys
+        ] + [
+            f"{key} (Acceleration)" for key in feature_keys
+        ]
+    )
+
+    for col_idx, key in enumerate(angle_keys):
+        h_t, h_ang, h_vel, h_acc, h_phase = interpolate_group(healthy_steps, key)
+        u_t, u_ang, u_vel, u_acc, u_phase = interpolate_group(unhealthy_steps, key)
+        if h_ang is None or u_ang is None:
+            continue
+
+        for row, (h_data, u_data) in enumerate(zip([h_ang, h_vel, h_acc], [u_ang, u_vel, u_acc]), start=1):
+            h_mean, h_sem = h_data
+            u_mean, u_sem = u_data
+            plot_phase_aligned_trace(fig, row, col_idx + 1, h_t, h_mean, h_sem, h_phase, light=False)
+            plot_phase_aligned_trace(fig, row, col_idx + 1, u_t, u_mean, u_sem, u_phase, light=True)
+
+    fig.update_layout(
+        height=350 * 3,
+        width=300 * n_cols,
+        title="Angle, Velocity, and Acceleration over Time (Normalized to Angle Range)",
+        xaxis_title="Time (s)" if frame_rate else "Frame Index",
+        yaxis_title="Normalized Units",
         template='plotly_white'
     )
-    fig.show()
-
+    if figure_path:
+        fig.write_image(figure_path, format='svg')
+    else:
+        fig.show()
 
 # === compare_phase_aligned_average_xy ===
-def compare_phase_aligned_average_xy(healthy_steps, unhealthy_steps, feature_keys, n_points=100):
+def compare_phase_aligned_average_xy(healthy_steps, unhealthy_steps, feature_keys, n_points=100, figure_path=None):
     x_keys = [k for k in feature_keys if 'X' in k]
     y_keys = [k for k in feature_keys if 'Y' in k]
     max_len = max(len(x_keys), len(y_keys))
@@ -633,11 +750,240 @@ def compare_phase_aligned_average_xy(healthy_steps, unhealthy_steps, feature_key
         title=f"{name} Healthy vs Unhealthy Comparison (X/Y)",
         template='plotly_white'
     )
+    if figure_path:
+        fig.write_image(figure_path, format='svg')
+    else:
+        fig.show()
+
+def compare_spatial_progression_over_time(healthy_steps, unhealthy_steps, finger_pose_key, frame_rate=None, n_points=100):
+
+    def interpolate_group(steps):
+        all_times, all_yvals, all_phases = [], [], []
+
+        for step in steps:
+            df = step['step']
+            if finger_pose_key not in df.columns:
+                continue
+
+            x = df[finger_pose_key].to_numpy()
+            frames = df.index.to_numpy()
+            times = frames / frame_rate if frame_rate else frames - frames[0]
+
+            step_length = x[-1] - x[0]
+            if step_length == 0:
+                continue
+
+            norm_x = (x - x[0]) / step_length
+
+            interp_t = np.linspace(times[0], times[-1], n_points)
+            interp_y = np.interp(interp_t, times, norm_x)
+
+            stance_start, stance_end = step["stance"]
+            swing_start, swing_end = step["swing"]
+            stances = [(stance_start, stance_end)]
+            swings = [(swing_start, swing_end)]
+
+            interp_phases = [
+                determine_phase(int(np.interp(t, times, frames)), stances, swings)
+                for t in interp_t
+            ]
+
+            all_times.append(interp_t)
+            all_yvals.append(interp_y)
+            all_phases.append(interp_phases)
+
+        if not all_times:
+            return None, None, None, None
+
+        all_times = np.array(all_times)
+        all_yvals = np.array(all_yvals)
+        all_phases = np.array(all_phases)
+
+        mean_t = np.mean(all_times, axis=0)
+        mean_y = np.mean(all_yvals, axis=0)
+        sem_y = np.std(all_yvals, axis=0) / np.sqrt(all_yvals.shape[0])
+        dominant_phases = [Counter(all_phases[:, i]).most_common(1)[0][0] for i in range(n_points)]
+
+        return mean_t, mean_y, sem_y, dominant_phases
+
+    # === Interpolate each group ===
+    h_time, h_mean, h_sem, h_phase = interpolate_group(healthy_steps)
+    u_time, u_mean, u_sem, u_phase = interpolate_group(unhealthy_steps)
+
+    if h_time is None or u_time is None:
+        print("Missing data for one of the groups.")
+        return
+
+    # === Plot ===
+    fig = go.Figure()
+
+    def add_trace(mean_t, mean_y, sem_y, phase_labels, light=False):
+        current_phase = phase_labels[0]
+        xs, ys, ys_upper, ys_lower = [], [], [], []
+
+        for i in range(n_points):
+            if phase_labels[i] != current_phase and xs:
+                color = get_phase_color(current_phase, alpha=0.7 if not light else 0.4)
+                fig.add_trace(go.Scatter(
+                    x=xs, y=ys,
+                    mode='lines',
+                    line=dict(color=color, width=3, dash='dot' if light else 'solid'),
+                    showlegend=False
+                ))
+                fig.add_trace(go.Scatter(
+                    x=xs + xs[::-1],
+                    y=ys_upper + ys_lower[::-1],
+                    fill='toself',
+                    fillcolor=color.replace('0.7', '0.2') if not light else color.replace('0.4', '0.1'),
+                    line=dict(color='rgba(255,255,255,0)'),
+                    showlegend=False
+                ))
+                xs, ys, ys_upper, ys_lower = [], [], [], []
+
+            xs.append(mean_t[i])
+            ys.append(mean_y[i])
+            ys_upper.append(mean_y[i] + sem_y[i])
+            ys_lower.append(mean_y[i] - sem_y[i])
+            current_phase = phase_labels[i]
+
+        if xs:
+            color = get_phase_color(current_phase, alpha=0.7 if not light else 0.4)
+            fig.add_trace(go.Scatter(
+                x=xs, y=ys,
+                mode='lines',
+                line=dict(color=color, width=3, dash='dot' if light else 'solid'),
+                showlegend=False
+            ))
+            fig.add_trace(go.Scatter(
+                x=xs + xs[::-1],
+                y=ys_upper + ys_lower[::-1],
+                fill='toself',
+                fillcolor=color.replace('0.7', '0.2') if not light else color.replace('0.4', '0.1'),
+                line=dict(color='rgba(255,255,255,0)'),
+                showlegend=False
+            ))
+
+    # Healthy = solid, Unhealthy = dotted
+    add_trace(h_time, h_mean, h_sem, h_phase, light=False)
+    add_trace(u_time, u_mean, u_sem, u_phase, light=True)
+
+    fig.update_layout(
+        title="Normalized Spatial Progression vs. Time (Healthy vs. Unhealthy)",
+        xaxis_title="Time (s)" if frame_rate else "Frame Index",
+        yaxis_title="Normalized Step Position (0–1)",
+        width=800,
+        height=600,
+        template='plotly_white',
+    )
     fig.show()
 
+def compare_spatial_progression_xy_over_time(
+    healthy_steps, unhealthy_steps,
+    feature_keys, length_key, height_key,
+    frame_rate=200, n_points=100, figure_path=None
+):
+    def interpolate_group(steps, key, norm_key, is_x_axis=True):
+        all_times, all_yvals, all_phases = [], [], []
+
+        for step in steps:
+            df = step['step']
+            if key not in df.columns or norm_key not in df.columns:
+                continue
+
+            values = df[key].to_numpy()
+            norm_ref = df[norm_key].to_numpy()
+            frames = df.index.to_numpy()
+            times = frames / frame_rate if frame_rate else frames - frames[0]
+
+            norm_range = max(norm_ref) - min(norm_ref)
+            if norm_range == 0:
+                continue
+
+            norm_vals = (values - values[0]) / norm_range
+
+            interp_t = np.linspace(times[0], times[-1], n_points)
+            interp_y = np.interp(interp_t, times, norm_vals)
+
+            stance_start, stance_end = step["stance"]
+            swing_start, swing_end = step["swing"]
+            stances = [(stance_start, stance_end)]
+            swings = [(swing_start, swing_end)]
+
+            interp_phases = [
+                determine_phase(int(np.interp(t, times, frames)), stances, swings)
+                for t in interp_t
+            ]
+
+            all_times.append(interp_t)
+            all_yvals.append(interp_y)
+            all_phases.append(interp_phases)
+
+        if not all_times:
+            return None, None, None, None
+
+        all_times = np.array(all_times)
+        all_yvals = np.array(all_yvals)
+        all_phases = np.array(all_phases)
+
+        mean_t = np.mean(all_times, axis=0)
+        mean_y = np.mean(all_yvals, axis=0)
+        sem_y = np.std(all_yvals, axis=0) / np.sqrt(all_yvals.shape[0])
+        dominant_phases = [Counter(all_phases[:, i]).most_common(1)[0][0] for i in range(n_points)]
+
+        return mean_t, mean_y, sem_y, dominant_phases
+
+    x_keys = [k for k in feature_keys if 'X' in k]
+    y_keys = [k for k in feature_keys if 'Y' in k]
+    max_len = max(len(x_keys), len(y_keys))
+    subplot_titles = x_keys + y_keys
+
+    fig = make_subplots(
+        rows=2, cols=max_len,
+        shared_yaxes=False,
+        subplot_titles=subplot_titles,
+        horizontal_spacing=0.05
+    )
+
+    for col_idx in range(max_len):
+        for row_idx, key_list, norm_key in zip(
+            [1, 2],
+            [x_keys, y_keys],
+            [length_key, height_key]
+        ):
+            if col_idx >= len(key_list):
+                continue
+            key = key_list[col_idx]
+
+            h_time, h_mean, h_sem, h_phase = interpolate_group(healthy_steps, key, norm_key, is_x_axis=(row_idx == 1))
+            u_time, u_mean, u_sem, u_phase = interpolate_group(unhealthy_steps, key, norm_key, is_x_axis=(row_idx == 1))
+
+            if h_mean is None or u_mean is None:
+                continue
+
+            plot_phase_aligned_trace(
+                fig, row_idx, col_idx + 1,
+                h_time, h_mean, h_sem, h_phase, light=False
+            )
+            plot_phase_aligned_trace(
+                fig, row_idx, col_idx + 1,
+                u_time, u_mean, u_sem, u_phase, light=True
+            )
+
+    fig.update_layout(
+        height=700,
+        width=350 * max_len,
+        title="Normalized XY Progression over Time (Healthy vs. Unhealthy)",
+        xaxis_title="Time (s)" if frame_rate else "Frame Index",
+        yaxis_title="Normalized to Step Length / Height",
+        template='plotly_white'
+    )
+    if figure_path:
+        fig.write_image(figure_path, format='svg')
+    else:
+        fig.show()
 
 # === plot_phase_aligned_average_single ===
-def plot_phase_aligned_average_single(segmented_steps, feature_keys, n_points=100):
+def plot_phase_aligned_average_single(segmented_steps, feature_keys, n_points=100, figure_path=None):
     pose_keys = [k for k in feature_keys if ('Angle -' in k or 'CoM' in k) and 'velocity' not in k and 'acceleration' not in k]
     vel_keys = [k for k in feature_keys if 'velocity' in k and 'acceleration' not in k]
     acc_keys = [k for k in feature_keys if 'acceleration' in k]
@@ -661,11 +1007,15 @@ def plot_phase_aligned_average_single(segmented_steps, feature_keys, n_points=10
         title="Phase-Aligned Averages by Kinematic Type with SEM",
         template='plotly_white'
     )
-    fig.show()
+    if figure_path:
+        # save the figure in a vectorial format
+        fig.write_image(figure_path, format='svg')
+    else:
+        fig.show()
 
 
 # === plot_phase_aligned_average_xy ===
-def plot_phase_aligned_average_xy(segmented_steps, feature_keys, n_points=100):
+def plot_phase_aligned_average_xy(segmented_steps, feature_keys, n_points=100, figure_path=None):
     x_keys = [k for k in feature_keys if 'X' in k]
     y_keys = [k for k in feature_keys if 'Y' in k]
     max_len = max(len(x_keys), len(y_keys))
@@ -686,11 +1036,15 @@ def plot_phase_aligned_average_xy(segmented_steps, feature_keys, n_points=100):
 
     fig.update_layout(
         height=700,
-        width=350 * max_len,
+        width=500 * max_len,
         title="Phase-Aligned Averages with SEM",
         template='plotly_white'
     )
-    fig.show()
+    if figure_path:
+        # save the figure in a vectorial format
+        fig.write_image(figure_path, format='svg')
+    else:
+        fig.show()
 
 def plot_trajectory_with_joint_trace(data, keys, limb_name='Hindlimb',
                                      trace_keys=('rhindlimb lHindfingers - X pose (m)',
