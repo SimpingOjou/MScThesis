@@ -23,9 +23,11 @@ PLOT_STYLE = PlotStyle(
 )
 
 ## Phase color constants
-STANCE_COLOR = (255, 100, 100)  # Red
-SWING_COLOR = (100, 100, 255)   # Blue
+# STANCE_COLOR = (255, 100, 100)  # Red
+# SWING_COLOR = (100, 100, 255)   # Blue
 OTHER_COLOR = (150, 150, 150)   # Gray
+STANCE_COLOR = (189, 147, 249) # Purple
+SWING_COLOR = (139, 233, 253) # Cyan
 
 def majority_vote(labels):
     counts = Counter(labels)
@@ -38,7 +40,7 @@ def determine_phase(frame, stances, swings):
         return 'swing'
     return 'other'
 
-def get_phase_color(phase, alpha=0.7):
+def get_phase_color(phase, alpha=1):
     """
     Determine phase color and label for a given frame index.
     
@@ -84,7 +86,7 @@ def extract_joint_keys(keys):
     return x_keys, y_keys, joint_names
 
 # === Frame Trace Builder ===
-def create_frame_trace(frame_data, x_keys, y_keys, joint_names, frame, phase, alpha=0.7):
+def create_frame_trace(frame_data, x_keys, y_keys, joint_names, frame, phase, alpha=1):
     x_positions = [frame_data[x] for x in x_keys]
     y_positions = [frame_data[y] for y in y_keys]
     color = get_phase_color(phase, alpha)
@@ -92,10 +94,10 @@ def create_frame_trace(frame_data, x_keys, y_keys, joint_names, frame, phase, al
     return go.Scatter(
         x=x_positions,
         y=y_positions,
-        mode='lines+markers',
+        mode='lines',
         name=f"Frame {frame} ({phase})",
         line=dict(width=PLOT_STYLE.scatter_line_width, color=color),
-        marker=dict(size=PLOT_STYLE.scatter_size, symbol=PLOT_STYLE.scatter_symbol, color=color),
+        marker=dict(size=0, symbol=PLOT_STYLE.scatter_symbol, color=color),
         text=[f"{joint} - Frame {frame} ({phase})" for joint in joint_names],
         hoverinfo='text',
         showlegend=False
@@ -118,7 +120,7 @@ def get_joint_trajectory_segmented_by_phase(step_df, x_key, y_key, stances, swin
 
     for i, frame in enumerate(step_df.index):
         x, y = step_df.loc[frame, x_key], step_df.loc[frame, y_key]
-        alpha = 0.3 + 0.7 * i / total_frames
+        alpha = 1#0.3 + 0.7 * i / total_frames
         phase = determine_phase(frame, stances, swings)
 
         if phase != current_phase and xs:
@@ -189,11 +191,11 @@ def plot_phase_aligned_trace(fig, row, col, time_vals, mean_vals, sem_vals, phas
     for i in range(len(time_vals) - 1):
         phase = phase_labels[i]
         if phase == 'swing':
-            color = 'lightblue' if light else 'blue'
-            sem_color = 'rgba(173,216,230,0.5)' if light else 'rgba(0,0,255,0.2)'
+            color = '#8be9fd' if not light else 'rgba(139, 233, 253, 0.5)'
+            sem_color = 'rgba(139, 233, 253, 0.7)' if not light else 'rgba(139, 233, 253, 0.35)'
         elif phase == 'stance':
-            color = 'lightcoral' if light else 'red'
-            sem_color = 'rgba(240,128,128,0.2)' if light else 'rgba(255,0,0,0.2)'
+            color = '#bd93f9' if not light else 'rgba(189, 147, 249, 0.5)'
+            sem_color = 'rgba(189, 147, 249, 0.7)' if not light else 'rgba(189, 147, 249, 0.2)'
         else:
             color = 'lightgray' if light else 'gray'
             sem_color = 'rgba(192,192,192,0.2)'

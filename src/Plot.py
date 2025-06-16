@@ -563,6 +563,8 @@ def plot_mean_spatial_trajectory(segmented_steps,
     )
     fig.show()
 
+    return fig
+
 
 # === compare_phase_aligned_average_single ===
 def compare_phase_aligned_average_single(healthy_steps, unhealthy_steps, feature_keys, n_points=100, figure_path=None):
