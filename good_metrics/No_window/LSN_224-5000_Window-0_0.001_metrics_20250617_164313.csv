@@ -1,0 +1,5 @@
+Event,TP,FP,FN,Precision,Recall,F1,MATE (ms),median ATE (ms),MATE_std (ms),minmax ATE (ms),MTE (ms),median TE (ms),MTE_std (ms),minmax TE (ms)
+Stance,0,0,108,0.0,0.0,0.0,,,,nan-nan,,,,nan-nan
+Touchdown,0,0,108,0.0,0.0,0.0,,,,nan-nan,,,,nan-nan
+Swing,0,0,108,0.0,0.0,0.0,,,,nan-nan,,,,nan-nan
+Peak,0,0,108,0.0,0.0,0.0,,,,nan-nan,,,,nan-nan
