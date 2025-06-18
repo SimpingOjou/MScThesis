@@ -568,7 +568,7 @@ def plot_mean_spatial_trajectory(segmented_steps,
 
 # === compare_phase_aligned_average_single ===
 def compare_phase_aligned_average_single(healthy_steps, unhealthy_steps, feature_keys, n_points=100, figure_path=None):
-    pose_keys = [k for k in feature_keys if ('Angle -' in k or 'CoM' in k) and 'velocity' not in k and 'acceleration' not in k]
+    pose_keys = [k for k in feature_keys if ('Angle -' in k or 'CoM' in k or 'Phase -' in k) and 'velocity' not in k and 'acceleration' not in k]
     vel_keys = [k for k in feature_keys if 'velocity' in k and 'acceleration' not in k]
     acc_keys = [k for k in feature_keys if 'acceleration' in k]
     grouped = list(zip(pose_keys, vel_keys, acc_keys))
@@ -980,7 +980,7 @@ def compare_spatial_progression_xy_over_time(
 
 # === plot_phase_aligned_average_single ===
 def plot_phase_aligned_average_single(segmented_steps, feature_keys, n_points=100, figure_path=None):
-    pose_keys = [k for k in feature_keys if ('Angle -' in k or 'CoM' in k) and 'velocity' not in k and 'acceleration' not in k]
+    pose_keys = [k for k in feature_keys if ('Angle -' in k or 'CoM' in k or 'Phase -' in k) and 'velocity' not in k and 'acceleration' not in k]
     vel_keys = [k for k in feature_keys if 'velocity' in k and 'acceleration' not in k]
     acc_keys = [k for k in feature_keys if 'acceleration' in k]
     grouped = list(zip(pose_keys, vel_keys, acc_keys))
