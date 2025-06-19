@@ -8,6 +8,8 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
+from tqdm import tqdm
+
 from plotly.subplots import make_subplots
 from collections import defaultdict, Counter
 
@@ -232,7 +234,7 @@ def plot_animated_trajectory(data, keys, limb_name='Hindlimb'):
 
 # === Trajectory with Dual Joint Traces ===
 def plot_trajectory_with_joint_traces(data, keys_1, keys_2, limb_name='Hindlimb', figure_path=None):
-    for exp in data:
+    for exp in tqdm(data, desc="Plotting Trajectory with Joint Traces"):
         step_df = exp["data"]
         mouse = exp["mouse"]
         group = exp["group"]
