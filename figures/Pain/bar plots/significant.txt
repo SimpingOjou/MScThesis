@@ -1,0 +1,114 @@
+Comparisons without bonferroni correction on 382 features: step-features, hindlimb features
+
+Comparison sick_left_A_run vs sick_left_C_run:
+	Number of significant features: 16
+	Significant features: 
+	[('Mean angle acceleration during swing - rhindlimb - hip (rad/s^2)', '*', ' (circular approx)', '0.5±0.9 vs -0.7±0.9°'), 
+	('Mean angle acceleration during swing - rhindlimb - lHindfingers (rad/s^2)', '*', ' (circular approx)', '0.2±0.7 vs 0.1±1.2°'), 
+	('Mean angle during stance - rhindlimb - knee (°)', '*', ' (circular approx)', '1.6±0.1 vs 1.6±0.0°'), 
+	('Mean angle during swing - rhindlimb - ankle (°)', '**', ' (circular approx)', '1.0±0.1 vs 1.1±0.0°'), 
+	('Mean angle excursion - rhindlimb - lHindpaw (°)', '**', '', '57.51±1.89 vs 60.39±2.19'), 
+	('Mean angle value - rhindlimb - lHindpaw (°)', '*', ' (circular approx)', '149.3±2.9 vs 146.9±1.8°'), 
+	('Mean angle velocity - rhindlimb - lHindpaw (rad/s)', '*', ' (circular approx)', '0.0±0.1 vs 0.1±0.1°'), 
+	('Mean angle velocity at peak - rhindlimb - lHindpaw (rad/s)', '*', ' (circular approx)', '2.9±2.9 vs 2.0±7.5°'), 
+	('Mean angle velocity at swing - rhindlimb - ankle (rad/s)', '*', ' (circular approx)', '-0.8±5.3 vs 0.8±2.3°'), 
+	('Mean angle velocity during swing - rhindlimb - ankle (rad/s)', '*', ' (circular approx)', '-0.3±0.6 vs -0.7±1.0°'), 
+	('Mean phase acceleration at peak - rhindlimb - lHindpaw (rad/s^2)', '*', ' (circular approx)', '50.2±93.6 vs -105.0±69.5°'), 
+	('Mean phase acceleration during swing - rhindlimb - hip (rad/s^2)', '*', ' (circular approx)', '0.5±0.9 vs -0.7±0.9°'), 
+	('Mean phase during swing - rhindlimb - ankle (°)', '**', ' (circular approx)', '-0.9±0.0 vs -0.9±0.0°'), 
+	('Mean phase velocity during swing - rhindlimb - knee (rad/s)', '*', ' (circular approx)', '0.8±1.0 vs -0.3±1.1°'), 
+	('Mean step acceleration Y at touchdown - ankle (m/s^2)', '*', '', '5.02±0.78 vs 6.37±1.34'), 
+	('Mean step jerk X during swing - hip (m/s^3)', '*', ' (nonparametric)', '-36.90 (median) vs -19.43 (median)')]
+	
+Comparison sick_left_B_run vs sick_left_C_run:
+	Number of significant features: 25
+	Significant features: 
+	[('Mean angle acceleration - rhindlimb - ankle (rad/s^2)', '*', ' (circular approx)', '-110.1±22.0 vs -86.6±13.9°'), 
+	('Mean angle acceleration - rhindlimb - knee (rad/s^2)', '*', ' (circular approx)', '-147.0±24.8 vs -124.1±18.9°'), 
+	('Mean angle acceleration at peak - rhindlimb - lHindpaw (rad/s^2)', '*', ' (circular approx)', '-165.5±64.3 vs -11.0±100.5°'), 
+	('Mean angle during stance - rhindlimb - knee (°)', '*', ' (circular approx)', '1.6±0.0 vs 1.6±0.0°'), 
+	('Mean angle velocity at peak - rhindlimb - lHindpaw (rad/s)', '*', ' (circular approx)', '0.8±3.1 vs 2.0±7.5°'), 
+	('Mean angle velocity during swing - rhindlimb - lHindpaw (rad/s)', '*', ' (circular approx)', '0.1±0.5 vs 0.5±1.4°'), 
+	('Mean phase acceleration at swing - rhindlimb - knee (rad/s^2)', '*', ' (circular approx)', '-81.5±64.0 vs 87.2±85.2°'), 
+	('Mean phase velocity at stance - rhindlimb - knee (rad/s)', '*', ' (circular approx)', '-8.7±2.0 vs -6.5±1.8°'), 
+	('Mean phase velocity at stance - rhindlimb - lHindpaw (rad/s)', '*', ' (circular approx)', '-0.4±3.0 vs 2.8±1.5°'), 
+	('Mean step acceleration X at stance - hip (m/s^2)', '*', '', '-3.53±1.05 vs -2.12±1.31'), 
+	('Mean step jerk X at stance - hip (m/s^3)', '*', '', '-14.23±162.83 vs 162.99±176.85'), 
+	('Mean step jerk X during stance - hip (m/s^3)', '*', '', '45.77±19.16 vs 27.31±18.49'), 
+	('Mean step jerk X during swing - ankle (m/s^3)', '*', '', '-316.14±123.01 vs -223.85±52.37'), 
+	('Mean step jerk X during swing - hip (m/s^3)', '*', ' (nonparametric)', '-29.57 (median) vs -19.43 (median)'), 
+	('Mean step jerk X during swing - knee (m/s^3)', '*', '', '-225.73±88.71 vs -152.73±39.71'), 
+	('Mean step jerk Y during stance - ankle (m/s^3)', '**', '', '-50.75±25.75 vs -22.31±15.40'), 
+	('Mean step length (m)', '*', '', '0.06±0.00 vs 0.06±0.00'), 
+	('Mean step velocity X at peak - hip (m/s)', '**', '', '0.31±0.04 vs 0.25±0.04'), 
+	('Mean step velocity X at stance - hip (m/s)', '*', '', '0.31±0.06 vs 0.25±0.03'), 
+	('Mean step velocity X at touchdown - hip (m/s)', '*', '', '0.30±0.05 vs 0.26±0.03'), 
+	('Mean step velocity X during swing - ankle (m/s)', '*', '', '0.46±0.07 vs 0.40±0.04'), 
+	('Mean step velocity X during swing - hip (m/s)', '*', '', '0.31±0.05 vs 0.26±0.03'), 
+	('Mean step velocity X during swing - knee (m/s)', '*', '', '0.42±0.07 vs 0.36±0.03'), 
+	('Mean step velocity X during swing - lHindfingers (m/s)', '*', '', '0.58±0.10 vs 0.50±0.04'), 
+	('Mean step velocity X during swing - lHindpaw (m/s)', '*', '', '0.55±0.09 vs 0.48±0.04')]
+	
+Comparison sick_left_C_run vs sick_left_E_run:
+	Number of significant features: 50
+	Significant features: 
+	[('Mean angle acceleration at peak - rhindlimb - ankle (rad/s^2)', '*', ' (circular approx)', '-144.9±66.6 vs -20.1±86.3°'), 
+	('Mean angle acceleration at peak - rhindlimb - lHindfingers (rad/s^2)', '*', ' (circular approx)', '-128.9±70.2 vs 65.5±86.2°'), 
+	('Mean angle acceleration during swing - rhindlimb - hip (rad/s^2)', '*', ' (circular approx)', '-0.7±0.9 vs 0.4±1.3°'), 
+	('Mean angle at stance - rhindlimb - lHindpaw (°)', '***', ' (circular approx)', '146.0±3.4 vs 151.3±1.8°'), 
+	('Mean angle at touchdown - rhindlimb - hip (°)', '*', ' (circular approx)', '127.8±2.0 vs 130.3±2.0°'), 
+	('Mean angle at touchdown - rhindlimb - lHindpaw (°)', '**', ' (circular approx)', '148.9±4.2 vs 154.7±2.5°'), 
+	('Mean angle during stance - rhindlimb - ankle (°)', '*', ' (circular approx)', '1.2±0.1 vs 1.2±0.0°'), 
+	('Mean angle during stance - rhindlimb - hip (°)', '*', ' (circular approx)', '1.7±0.1 vs 1.7±0.0°'), 
+	('Mean angle during stance - rhindlimb - lHindpaw (°)', '**', ' (circular approx)', '2.4±0.0 vs 2.5±0.0°'), 
+	('Mean angle during swing - rhindlimb - ankle (°)', '*', ' (circular approx)', '1.1±0.0 vs 1.1±0.0°'), 
+	('Mean angle during swing - rhindlimb - hip (°)', '**', ' (circular approx)', '1.7±0.0 vs 1.8±0.1°'), 
+	('Mean angle during swing - rhindlimb - lHindfingers (°)', '*', ' (circular approx)', '2.6±0.1 vs 2.7±0.1°'), 
+	('Mean angle value - rhindlimb - ankle (°)', '**', ' (circular approx)', '65.9±2.3 vs 62.9±1.6°'), 
+	('Mean angle value - rhindlimb - hip (°)', '**', ' (circular approx)', '98.2±3.1 vs 102.5±2.5°'), 
+	('Mean angle value - rhindlimb - lHindpaw (°)', '**', ' (circular approx)', '146.9±1.8 vs 149.4±1.7°'), 
+	('Mean angle velocity at swing - rhindlimb - lHindfingers (rad/s)', '*', ' (circular approx)', '-15.5±2.8 vs -12.6±3.0°'), 
+	('Mean phase acceleration during swing - rhindlimb - hip (rad/s^2)', '*', ' (circular approx)', '-0.7±0.9 vs 0.4±1.3°'), 
+	('Mean phase at stance - rhindlimb - ankle (°)', '*', ' (circular approx)', '-30.8±3.4 vs -27.3±2.1°'), 
+	('Mean phase at touchdown - rhindlimb - ankle (°)', '**', ' (circular approx)', '-28.3±3.4 vs -24.5±1.7°'), 
+	('Mean phase at touchdown - rhindlimb - hip (°)', '*', ' (circular approx)', '-52.2±2.0 vs -49.7±2.0°'), 
+	('Mean phase at touchdown - rhindlimb - knee (°)', '*', ' (circular approx)', '-141.4±2.3 vs -139.2±1.8°'), 
+	('Mean phase at touchdown - rhindlimb - lHindpaw (°)', '**', ' (circular approx)', '2.8±3.1 vs 0.8±1.9°'), 
+	('Mean phase during stance - rhindlimb - hip (°)', '*', ' (circular approx)', '-1.5±0.1 vs -1.4±0.0°'), 
+	('Mean phase during swing - rhindlimb - ankle (°)', '***', ' (circular approx)', '-0.9±0.0 vs -0.8±0.1°'), 
+	('Mean phase during swing - rhindlimb - hip (°)', '**', ' (circular approx)', '-1.4±0.0 vs -1.3±0.1°'), 
+	('Mean phase during swing - rhindlimb - knee (°)', '*', ' (circular approx)', '-3.0±0.0 vs -2.9±0.1°'), 
+	('Mean phase during swing - rhindlimb - lHindpaw (°)', '*', ' (circular approx)', '-0.5±0.1 vs -0.4±0.1°'), 
+	('Mean phase value - rhindlimb - ankle (°)', '**', ' (circular approx)', '-55.3±3.9 vs -49.8±3.1°'), 
+	('Mean phase value - rhindlimb - hip (°)', '**', ' (circular approx)', '-81.8±3.1 vs -77.5±2.5°'), 
+	('Mean phase velocity - rhindlimb - knee (rad/s)', '*', ' (circular approx)', '0.0±0.1 vs 0.0±0.0°'), 
+	('Mean phase velocity at stance - rhindlimb - ankle (rad/s)', '*', ' (circular approx)', '-8.7±2.3 vs -6.6±1.8°'), 
+	('Mean phase velocity at swing - rhindlimb - lHindpaw (rad/s)', '*', ' (circular approx)', '-15.5±2.8 vs -12.6±3.0°'), 
+	('Mean phase velocity at touchdown - rhindlimb - ankle (rad/s)', '*', ' (circular approx)', '-10.7±2.2 vs -8.4±1.8°'), 
+	('Mean step acceleration Y at stance - lHindpaw (m/s^2)', '*', '', '10.00±2.44 vs 7.30±2.01'), 
+	('Mean step acceleration Y at touchdown - ankle (m/s^2)', '**', '', '6.37±1.34 vs 4.43±1.53'), 
+	('Mean step acceleration Y at touchdown - lHindfingers (m/s^2)', '*', '', '8.54±2.47 vs 6.45±1.57'), 
+	('Mean step acceleration Y at touchdown - lHindpaw (m/s^2)', '*', '', '10.11±3.06 vs 6.96±2.07'), 
+	('Mean step acceleration Y during stance - lHindfingers (m/s^2)', '*', '', '1.23±0.32 vs 0.94±0.23'), 
+	('Mean step acceleration Y during swing - lHindfingers (m/s^2)', '*', '', '-1.61±0.33 vs -1.28±0.26'), 
+	('Mean step jerk X at touchdown - lHindfingers (m/s^3)', '*', ' (nonparametric)', '1706.61 (median) vs 1225.91 (median)'), 
+	('Mean step jerk X at touchdown - lHindpaw (m/s^3)', '*', ' (nonparametric)', '1812.65 (median) vs 1292.31 (median)'), 
+	('Mean step jerk Y during stance - lHindpaw (m/s^3)', '*', ' (nonparametric)', '-32.04 (median) vs -12.73 (median)'), 
+	('Mean step jerk Y during swing - lHindpaw (m/s^3)', '*', '', '19.79±28.35 vs -5.81±19.99'), 
+	('Mean step velocity X at swing - ankle (m/s)', '*', '', '0.25±0.03 vs 0.22±0.03'), 
+	('Mean step velocity X during stance - ankle (m/s)', '*', ' (nonparametric)', '0.10 (median) vs 0.08 (median)'), 
+	('Mean step velocity X during swing - hip (m/s)', '*', '', '0.26±0.03 vs 0.24±0.02'), 
+	('Mean step velocity X during swing - knee (m/s)', '*', '', '0.36±0.03 vs 0.33±0.03'), 
+	('Mean step velocity X during swing - lHindfingers (m/s)', '*', '', '0.50±0.04 vs 0.46±0.03'), 
+	('Mean step velocity X during swing - lHindpaw (m/s)', '*', '', '0.48±0.04 vs 0.44±0.03'), 
+	('Mean step velocity Y during swing - lHindpaw (m/s)', '*', ' (nonparametric)', '-0.02 (median) vs -0.02 (median)')]
+	
+	
+------------------------------------------------------------------------------------------------------------------------------------
+
+
+With bonferroni (382 features)
+
+all n.s.
+
+
