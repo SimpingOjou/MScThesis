@@ -1,0 +1,130 @@
+feature,value 1,value 2
+Mean angle acceleration - rhindlimb - ankle (rad/s^2),-92.0±22.4,-77.6±10.6°
+Mean angle acceleration - rhindlimb - hip (rad/s^2),-141.5±30.4,-127.9±14.5°
+Mean angle acceleration - rhindlimb - knee (rad/s^2),-128.2±25.8,-112.4±13.0°
+Mean angle acceleration - rhindlimb - lHindfingers (rad/s^2),147.1±45.7,164.9±18.7°
+Mean angle acceleration - rhindlimb - lHindpaw (rad/s^2),146.8±42.9,175.2±23.7°
+Mean angle acceleration at swing - rhindlimb - ankle (rad/s^2),-3.5±111.2,-111.0±61.1°
+Mean angle acceleration during stance - rhindlimb - knee (rad/s^2),0.3±1.2,0.4±0.8°
+Mean angle acceleration during stance - rhindlimb - lHindfingers (rad/s^2),-0.4±1.0,0.3±0.7°
+Mean angle acceleration during swing - rhindlimb - knee (rad/s^2),0.1±1.0,-0.3±0.4°
+Mean angle at peak - rhindlimb - ankle (°),66.8±11.0,56.7±4.2°
+Mean angle at peak - rhindlimb - knee (°),89.8±2.6,85.7±1.5°
+Mean angle at peak - rhindlimb - lHindfingers (°),126.0±17.7,146.9±11.7°
+Mean angle at peak - rhindlimb - lHindpaw (°),162.3±5.5,157.7±3.7°
+Mean angle at stance - rhindlimb - knee (°),91.0±2.2,92.5±1.6°
+Mean angle at stance - rhindlimb - lHindfingers (°),175.8±1.3,174.4±1.2°
+Mean angle at swing - rhindlimb - ankle (°),96.8±5.5,86.6±4.8°
+Mean angle at swing - rhindlimb - lHindfingers (°),118.4±8.1,129.1±4.2°
+Mean angle at touchdown - rhindlimb - lHindfingers (°),175.3±1.1,174.1±1.1°
+Mean angle during stance - rhindlimb - ankle (°),1.2±0.1,1.2±0.0°
+Mean angle during stance - rhindlimb - lHindfingers (°),2.7±0.1,2.8±0.0°
+Mean angle during stance - rhindlimb - lHindpaw (°),2.5±0.1,2.5±0.0°
+Mean angle during swing - rhindlimb - ankle (°),1.1±0.1,1.1±0.0°
+Mean angle during swing - rhindlimb - hip (°),1.8±0.1,1.8±0.1°
+Mean angle during swing - rhindlimb - knee (°),1.6±0.0,1.5±0.0°
+Mean angle during swing - rhindlimb - lHindfingers (°),2.5±0.1,2.7±0.1°
+Mean angle during swing - rhindlimb - lHindpaw (°),2.8±0.0,2.7±0.0°
+Mean angle excursion - rhindlimb - ankle (°),86.98±9.04,60.67±7.15
+Mean angle excursion - rhindlimb - lHindfingers (°),112.99±12.58,95.88±9.07
+Mean angle excursion - rhindlimb - lHindpaw (°),61.68 (median),58.67 (median)
+Mean angle value - rhindlimb - ankle (°),66.6±3.8,62.9±1.6°
+Mean angle value - rhindlimb - hip (°),99.7±4.1,102.5±2.5°
+Mean angle value - rhindlimb - knee (°),91.6±1.4,90.3±1.4°
+Mean angle value - rhindlimb - lHindfingers (°),152.0±4.3,158.9±2.3°
+Mean angle value - rhindlimb - lHindpaw (°),152.0±2.8,149.4±1.7°
+Mean angle velocity - rhindlimb - hip (rad/s),0.1±0.1,0.1±0.0°
+Mean angle velocity - rhindlimb - knee (rad/s),-0.0±0.0,-0.1±0.0°
+Mean angle velocity at peak - rhindlimb - ankle (rad/s),-22.2±8.9,-13.6±6.4°
+Mean angle velocity at peak - rhindlimb - knee (rad/s),-4.7±2.9,-2.2±1.9°
+Mean angle velocity at peak - rhindlimb - lHindpaw (rad/s),8.4±4.5,3.6±3.9°
+Mean angle velocity at stance - rhindlimb - ankle (rad/s),4.1±4.9,0.7±2.1°
+Mean angle velocity at stance - rhindlimb - hip (rad/s),-4.4±5.9,-8.1±1.5°
+Mean angle velocity at swing - rhindlimb - ankle (rad/s),2.5±4.9,-0.2±2.6°
+Mean angle velocity at swing - rhindlimb - hip (rad/s),-1.6±2.1,-1.4±0.9°
+Mean angle velocity at swing - rhindlimb - knee (rad/s),0.7±2.1,-2.8±1.7°
+Mean angle velocity at swing - rhindlimb - lHindfingers (rad/s),-15.3±5.0,-12.6±3.0°
+Mean angle velocity at touchdown - rhindlimb - knee (rad/s),1.2±1.3,2.4±1.3°
+Mean angle velocity at touchdown - rhindlimb - lHindfingers (rad/s),0.2±1.6,1.3±1.1°
+Mean angle velocity during swing - rhindlimb - ankle (rad/s),0.3±0.9,-0.8±1.1°
+Mean phase acceleration - rhindlimb - ankle (rad/s^2),-51.3±100.3,-26.1±42.2°
+Mean phase acceleration - rhindlimb - hip (rad/s^2),-28.8±89.7,9.4±37.8°
+Mean phase acceleration - rhindlimb - knee (rad/s^2),90.3±56.3,119.5±26.9°
+Mean phase acceleration at stance - rhindlimb - knee (rad/s^2),-173.8±107.6,-32.3±68.9°
+Mean phase acceleration at touchdown - rhindlimb - knee (rad/s^2),-103.2±91.7,-5.1±68.2°
+Mean phase acceleration during swing - rhindlimb - ankle (rad/s^2),0.2±0.9,-1.1±0.7°
+Mean phase at peak - rhindlimb - ankle (°),-66.7±16.2,-54.7±14.1°
+Mean phase at peak - rhindlimb - lHindpaw (°),-53.9±17.7,-33.0±11.8°
+Mean phase at swing - rhindlimb - ankle (°),-103.4±5.6,-93.0±4.6°
+Mean phase at swing - rhindlimb - lHindpaw (°),-61.6±8.1,-50.9±4.2°
+Mean phase during stance - rhindlimb - lHindpaw (°),-0.4±0.1,-0.3±0.1°
+Mean phase during swing - rhindlimb - ankle (°),-0.9±0.1,-0.8±0.1°
+Mean phase during swing - rhindlimb - hip (°),-1.4±0.1,-1.3±0.1°
+Mean phase during swing - rhindlimb - lHindpaw (°),-0.6±0.1,-0.4±0.1°
+Mean phase excursion - rhindlimb - ankle (°),115.92±8.25,98.17±6.19
+Mean phase excursion - rhindlimb - lHindpaw (°),123.34±12.15,109.63±7.89
+Mean phase value - rhindlimb - ankle (°),-54.7±5.4,-49.8±3.1°
+Mean phase value - rhindlimb - hip (°),-80.3±4.1,-77.5±2.5°
+Mean phase value - rhindlimb - lHindpaw (°),-27.2±4.6,-19.3±2.6°
+Mean phase velocity - rhindlimb - hip (rad/s),0.1±0.1,0.1±0.0°
+Mean phase velocity - rhindlimb - knee (rad/s),0.0±0.1,0.0±0.0°
+Mean phase velocity - rhindlimb - lHindpaw (rad/s),0.0±0.1,0.0±0.1°
+Mean phase velocity at peak - rhindlimb - ankle (rad/s),28.5±7.2,23.4±6.3°
+Mean phase velocity at peak - rhindlimb - knee (rad/s),6.3±3.9,9.8±2.0°
+Mean phase velocity at stance - rhindlimb - hip (rad/s),-1.1±14.9,-8.1±1.5°
+Mean phase velocity at stance - rhindlimb - knee (rad/s),-1.5±10.8,-6.0±2.3°
+Mean phase velocity at swing - rhindlimb - hip (rad/s),-1.6±2.1,-1.4±0.9°
+Mean phase velocity at swing - rhindlimb - knee (rad/s),-0.9±1.7,-4.3±1.3°
+Mean phase velocity at swing - rhindlimb - lHindpaw (rad/s),-15.3±5.0,-12.6±3.0°
+Mean step acceleration X at peak - hip (m/s^2),-1.70±1.76,-0.62±1.10
+Mean step acceleration X at peak - lHindfingers (m/s^2),7.93±9.23,-2.43±3.79
+Mean step acceleration X at peak - lHindpaw (m/s^2),1.87±7.71,-2.22±2.50
+Mean step acceleration X during stance - ankle (m/s^2),0.50±0.54,0.90±0.31
+Mean step acceleration X during stance - knee (m/s^2),0.18 (median),0.34 (median)
+Mean step acceleration X during stance - lHindfingers (m/s^2),-0.06±0.70,0.49±0.37
+Mean step acceleration X during stance - lHindpaw (m/s^2),0.23±0.65,0.68±0.35
+Mean step acceleration Y at peak - hip (m/s^2),-0.51±0.79,0.40±0.90
+Mean step acceleration Y at stance - knee (m/s^2),-3.40 (median),-1.29 (median)
+Mean step acceleration Y at swing - ankle (m/s^2),0.42±1.56,2.68±1.70
+Mean step acceleration Y at swing - hip (m/s^2),-0.75±0.95,-1.50±0.94
+Mean step acceleration Y at swing - lHindfingers (m/s^2),4.85±2.49,6.65±1.35
+Mean step acceleration Y at swing - lHindpaw (m/s^2),3.42 (median),6.00 (median)
+Mean step acceleration Y at touchdown - lHindfingers (m/s^2),4.35±2.25,6.45±1.57
+Mean step acceleration Y during stance - ankle (m/s^2),0.60±0.28,0.84±0.21
+Mean step acceleration Y during stance - hip (m/s^2),0.16 (median),-0.05 (median)
+Mean step acceleration Y during swing - ankle (m/s^2),-0.86±0.34,-1.11±0.18
+Mean step acceleration Y during swing - hip (m/s^2),-0.16±0.19,0.09±0.16
+Mean step jerk X at swing - ankle (m/s^3),453.27±290.11,190.14±234.51
+Mean step jerk X at swing - hip (m/s^3),141.20 (median),-36.42 (median)
+Mean step jerk X at swing - knee (m/s^3),468.09±430.87,69.43±250.37
+Mean step jerk Y at peak - ankle (m/s^3),-165.49±471.60,609.88±443.05
+Mean step jerk Y at peak - knee (m/s^3),-66.74±234.30,87.24±143.01
+Mean step jerk Y at peak - lHindfingers (m/s^3),-858.31±441.51,329.52±208.16
+Mean step jerk Y at peak - lHindpaw (m/s^3),-521.30±327.08,152.63±282.31
+Mean step jerk Y at stance - lHindfingers (m/s^3),164.95±357.77,-231.04±158.15
+Mean step jerk Y at stance - lHindpaw (m/s^3),65.22 (median),-198.65 (median)
+Mean step jerk Y at swing - ankle (m/s^3),-14.16±199.71,-324.90±236.26
+Mean step jerk Y during stance - ankle (m/s^3),-32.28±27.81,-13.83±10.93
+Mean step jerk Y during stance - lHindpaw (m/s^3),-32.47 (median),-12.73 (median)
+Mean step jerk Y during swing - ankle (m/s^3),31.61±20.92,10.05±15.77
+Mean step jerk Y during swing - hip (m/s^3),-18.44±16.22,-5.70±7.77
+Mean step length (m),0.06±0.01,0.06±0.00
+Mean step velocity X at peak - hip (m/s),0.26±0.06,0.23±0.02
+Mean step velocity X at stance - ankle (m/s),0.10 (median),0.05 (median)
+Mean step velocity X at stance - knee (m/s),0.17 (median),0.13 (median)
+Mean step velocity X at stance - lHindpaw (m/s),0.07 (median),0.03 (median)
+Mean step velocity X during stance - ankle (m/s),0.11 (median),0.08 (median)
+Mean step velocity X during stance - hip (m/s),0.23±0.05,0.20±0.02
+Mean step velocity X during stance - knee (m/s),0.15±0.04,0.12±0.01
+Mean step velocity X during stance - lHindfingers (m/s),0.03±0.01,0.01±0.00
+Mean step velocity X during stance - lHindpaw (m/s),0.05±0.02,0.03±0.01
+Mean step velocity X during swing - ankle (m/s),0.40±0.06,0.37±0.03
+Mean step velocity X during swing - lHindfingers (m/s),0.51±0.08,0.46±0.03
+Mean step velocity X during swing - lHindpaw (m/s),0.49±0.07,0.44±0.03
+Mean step velocity Y at peak - ankle (m/s),-0.05±0.04,-0.11±0.03
+Mean step velocity Y at peak - lHindfingers (m/s),0.07±0.03,-0.00±0.01
+Mean step velocity Y at peak - lHindpaw (m/s),0.04±0.02,-0.02±0.02
+Mean step velocity Y at stance - lHindfingers (m/s),-0.08±0.03,-0.06±0.02
+Mean step velocity Y at swing - ankle (m/s),0.05 (median),0.10 (median)
+Mean step velocity Y at swing - hip (m/s),0.01±0.01,-0.01±0.01
+Mean step velocity Y at swing - lHindpaw (m/s),0.06±0.02,0.09±0.01
